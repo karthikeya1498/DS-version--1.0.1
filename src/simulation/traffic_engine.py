@@ -20,7 +20,10 @@ class TrafficEngine:
         end = self.config.start_time + self.config.duration
         while timestamp <= end:
             peak = 1.25 if timestamp.hour in {8, 9, 17, 18} else 1.0
-            multipliers = {f"zone-{i}": round(max(0.75, peak + self.rng.uniform(-0.15, 0.15)), 3) for i in range(self.config.zones)}
+            multipliers = {
+                f"zone-{i}": round(max(0.75, peak + self.rng.uniform(-0.15, 0.15)), 3)
+                for i in range(self.config.zones)
+            }
             states.append(TrafficState(timestamp, multipliers))
             timestamp += step
         return states

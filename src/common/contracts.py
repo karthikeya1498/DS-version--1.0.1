@@ -1,13 +1,18 @@
 """Stable cross-layer contracts used by API and services."""
+
 from dataclasses import dataclass, field
 from datetime import datetime
+
+
 @dataclass(frozen=True)
 class ForecastResult:
     timestamps: tuple[datetime, ...]
     values: tuple[float, ...]
     lower: tuple[float, ...] = ()
     upper: tuple[float, ...] = ()
-    model: str = 'baseline'
+    model: str = "baseline"
+
+
 @dataclass(frozen=True)
 class RoutePlan:
     vehicle_id: str
@@ -17,6 +22,8 @@ class RoutePlan:
     lateness_minutes: float = 0.0
     feasible: bool = True
     violations: tuple[str, ...] = ()
+
+
 @dataclass(frozen=True)
 class OptimizationResult:
     routes: tuple[RoutePlan, ...]

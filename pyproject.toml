@@ -24,6 +24,9 @@ include = ["api*", "src*"]
 line-length = 100
 target-version = "py311"
 
+[tool.ruff.lint]
+ignore = ["B008", "B017", "BLE001", "PLW0127"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]

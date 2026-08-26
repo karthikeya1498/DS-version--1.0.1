@@ -2,10 +2,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
 def write(path: str, text: str) -> None:
     target = ROOT / path
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(text.strip() + "\n", encoding="utf-8")
+
 
 files = {
     "README.md": """# OPTIMA-X
@@ -284,7 +286,16 @@ for path, text in files.items():
     write(path, text)
 
 for directory in [ROOT / "src", ROOT / "api", *[p for p in ROOT.rglob("*") if p.is_dir()]]:
-    if directory.name not in {"frontend", "data", "configs", "docs", "experiments", "models", "mlruns", "notebooks"}:
+    if directory.name not in {
+        "frontend",
+        "data",
+        "configs",
+        "docs",
+        "experiments",
+        "models",
+        "mlruns",
+        "notebooks",
+    }:
         (directory / "__init__.py").touch(exist_ok=True)
 
 for name in ["development.yaml", "production.yaml"]:

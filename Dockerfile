@@ -8,7 +8,7 @@ COPY api ./api
 COPY src ./src
 COPY configs ./configs
 COPY dashboard.py ./dashboard.py
-COPY data/processed ./data/processed
+RUN mkdir -p /app/data/processed
 RUN chown -R appuser:appuser /app
 USER appuser
 EXPOSE 8000

@@ -1,10 +1,8 @@
-
 """Fleet generation and deterministic order dispatch."""
 
 from __future__ import annotations
 
 import random
-from datetime import timedelta
 
 from src.simulation.models import Location, Order, SimulationConfig, Vehicle, VehicleStatus
 
@@ -16,7 +14,16 @@ class FleetEngine:
 
     def generate_vehicles(self, locations: list[Location]) -> list[Vehicle]:
         end = self.config.start_time + self.config.duration
-        return [Vehicle(f"vehicle-{i:04d}", self.rng.choice(locations), self.rng.randint(8, 20), self.config.start_time, end) for i in range(self.config.vehicles)]
+        return [
+            Vehicle(
+                f"vehicle-{i:04d}",
+                self.rng.choice(locations),
+                self.rng.randint(8, 20),
+                self.config.start_time,
+                end,
+            )
+            for i in range(self.config.vehicles)
+        ]
 
     def dispatch(self, order: Order, vehicles: list[Vehicle]) -> tuple[Vehicle | None, float]:
         candidates = [v for v in vehicles if v.can_accept(order.demand_units, order.created_at)]

@@ -15,7 +15,12 @@ class DemandEngine:
 
     def generate_locations(self) -> list[Location]:
         count = max(self.config.zones, 2)
-        return [Location(f"node-{i}", f"zone-{i % self.config.zones}", 12.9 + i * 0.001, 77.5 + i * 0.001) for i in range(count)]
+        return [
+            Location(
+                f"node-{i}", f"zone-{i % self.config.zones}", 12.9 + i * 0.001, 77.5 + i * 0.001
+            )
+            for i in range(count)
+        ]
 
     def generate_orders(self, locations: list[Location]) -> list[Order]:
         orders: list[Order] = []
@@ -26,6 +31,18 @@ class DemandEngine:
             origin = self.rng.choice(locations)
             destination = self.rng.choice([loc for loc in locations if loc != origin])
             window_start = created_at + timedelta(minutes=self.rng.randint(5, 30))
-            window = TimeWindow(window_start, window_start + timedelta(minutes=self.rng.randint(30, 90)))
-            orders.append(Order(f"order-{index:05d}", origin, destination, self.rng.randint(1, self.config.max_order_demand), created_at, window, self.rng.randint(1, 3)))
+            window = TimeWindow(
+                window_start, window_start + timedelta(minutes=self.rng.randint(30, 90))
+            )
+            orders.append(
+                Order(
+                    f"order-{index:05d}",
+                    origin,
+                    destination,
+                    self.rng.randint(1, self.config.max_order_demand),
+                    created_at,
+                    window,
+                    self.rng.randint(1, 3),
+                )
+            )
         return orders
