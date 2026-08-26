@@ -12,7 +12,7 @@ from src.simulation.simulator import LogisticsSimulator
 def run(seed: int = 42, duration_hours: int = 8, zones: int = 5, vehicles: int = 10, orders_per_hour: int = 20) -> dict:
     config = SimulationConfig(seed=seed, duration=timedelta(hours=duration_hours), zones=zones, vehicles=vehicles, orders_per_hour=orders_per_hour)
     result = LogisticsSimulator(config).run()
-    summary = result.to_summary(); summary.update({'scenario_id': f'S{seed:03d}', 'nodes': zones, 'edges': zones * max(0, zones - 1), 'vehicles': vehicles, 'orders': result.metrics.total_orders, 'traffic_state': 'NORMAL', 'demand_multiplier': 1.0, 'graph_built': True, 'data_validated': True, 'simulation': 'SUCCESS'})
+    summary = result.to_summary(); summary.update({'scenario_id': f'S{seed:03d}', 'nodes': zones, 'edges': zones * max(0, zones - 1), 'vehicles': vehicles, 'orders': result.metrics.total_orders, 'traffic_state': 'NORMAL', 'demand_multiplier': 1.0, 'graph_built': True, 'data_validated': True, 'simulation': 'SUCCESS', 'vehicle_dispatches': [{'vehicle_id': vehicle.vehicle_id, 'status': vehicle.status.value, 'load_units': vehicle.load_units, 'capacity_units': vehicle.capacity_units, 'completed_orders': vehicle.completed_orders, 'current_zone': vehicle.current_location.zone_id if vehicle.current_location else None} for vehicle in result.vehicles]})
     return summary
 
 if __name__ == '__main__':
