@@ -1,1 +1,7 @@
-# Objective-weight configuration placeholder.
+objective:
+  distance_weight: 1.0
+  fuel_weight: 1.5
+  lateness_weight: 10.0
+  unserved_weight: 100.0
+  vehicle_weight: 5.0
+fuel_rate: 1.0

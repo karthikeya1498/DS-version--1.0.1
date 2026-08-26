@@ -16,6 +16,8 @@ from src.dashboard.data import (
     load_forecast_metrics,
     load_osm_edges,
     load_phase1_status,
+    load_phase3_comparison,
+    load_phase3_sensitivity,
     vehicle_dispatch_rows,
 )
 
@@ -40,7 +42,7 @@ metrics = snapshot.get('metrics', {})
 cols = st.columns(5)
 for col, (label, key) in zip(cols, [('Orders', 'total_orders'), ('Delivered', 'delivered_orders'), ('Late', 'late_deliveries'), ('Unserved', 'unserved_orders'), ('Cost', 'total_cost')]): col.metric(label, metrics.get(key, 0))
 
-network_tab, dispatch_tab, forecast_tab, benchmark_tab = st.tabs(['Road network', 'Live dispatches', 'Demand forecast', 'Algorithm benchmark'])
+network_tab, dispatch_tab, forecast_tab, benchmark_tab, optimization_tab = st.tabs(['Road network', 'Live dispatches', 'Demand forecast', 'Algorithm benchmark', 'Phase 3 optimization'])
 with network_tab:
     st.subheader('Road-network graph')
     fig, ax = plt.subplots(figsize=(9, 5)); edges = load_osm_edges(ROOT); n = max(3, int(status.get('nodes', snapshot.get('nodes', 5))));
@@ -66,5 +68,15 @@ with benchmark_tab:
     benchmark = load_benchmark(ROOT)
     if not benchmark.empty and {'nodes', 'algorithm', 'runtime_ms_mean'}.issubset(benchmark.columns): st.line_chart(benchmark.pivot(index='nodes', columns='algorithm', values='runtime_ms_mean'))
     else: st.info('Run benchmarks/graph_benchmark.py to populate routing artifacts.')
+with optimization_tab:
+    st.subheader('Phase 3 optimization lab')
+    comparison = load_phase3_comparison(ROOT); sensitivity = load_phase3_sensitivity(ROOT)
+    if not comparison.empty:
+        st.dataframe(comparison.drop(columns=['route'], errors='ignore'), use_container_width=True, hide_index=True)
+        st.bar_chart(comparison.set_index('algorithm')[['objective', 'runtime_ms']])
+    else: st.info('Run scripts/run_phase3_experiments.py to populate optimization artifacts.')
+    if not sensitivity.empty:
+        st.caption('Prediction error propagated through the same optimizer')
+        st.line_chart(sensitivity.set_index('forecast_error')[['decision_cost']])
 
 st.divider(); st.caption(f"Scenario {snapshot.get('scenario_id', 'S042')} | Seed {seed} | Simulation {snapshot.get('simulation', 'SUCCESS')}")

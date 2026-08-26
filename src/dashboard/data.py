@@ -34,6 +34,18 @@ def load_forecast_metrics(root: str | Path) -> pd.DataFrame:
     metrics = payload.get('metrics', {})
     return pd.DataFrame([{'model': payload.get('dataset', 'forecast'), **metrics}]) if metrics else pd.DataFrame()
 
+def load_phase3_comparison(root: str | Path) -> pd.DataFrame:
+    path = Path(root) / 'data/processed/phase3/comparison.json'
+    payload = load_json(path, {})
+    return pd.DataFrame(payload.get('algorithms', []))
+
+
+def load_phase3_sensitivity(root: str | Path) -> pd.DataFrame:
+    path = Path(root) / 'data/processed/phase3/comparison.json'
+    payload = load_json(path, {})
+    return pd.DataFrame(payload.get('prediction_error_sensitivity', []))
+
+
 def load_benchmark(root: str | Path) -> pd.DataFrame:
     path = Path(root) / 'data/processed/graph_benchmark.csv'; return pd.read_csv(path) if path.exists() else pd.DataFrame()
 
