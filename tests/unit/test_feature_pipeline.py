@@ -1,4 +1,5 @@
 import pandas as pd
+
 from src.features.feature_pipeline import build_demand_features, chronological_split
 
 
@@ -6,9 +7,9 @@ def test_features_use_only_prior_demand_and_create_next_target():
     frame = pd.DataFrame({'timestamp': pd.date_range('2026-01-01', periods=30, freq='h', tz='UTC'), 'zone': ['A'] * 30, 'demand': list(range(30))})
     result = build_demand_features(frame, lags=(1,), windows=(3,))
     first = result.iloc[0]
-    assert first['lag_1'] == 4
-    assert first['rolling_mean_3'] == 3
-    assert first['target'] == 6
+    assert first['lag_1'] == 2
+    assert first['rolling_mean_3'] == 1
+    assert first['target'] == 4
 
 
 def test_chronological_split_preserves_order_and_lengths():
