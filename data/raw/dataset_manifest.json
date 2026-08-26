@@ -1,0 +1,57 @@
+{
+  "generated_at": "2026-08-26",
+  "datasets": [
+    {
+      "name": "osm_manhattan",
+      "url": "https://overpass-api.de/api/interpreter?data=[out:json];way[highway](40.70,-74.02,40.80,-73.93);out%20geom;",
+      "path": "data/raw/osm/manhattan_roads.json",
+      "kind": "osm",
+      "local_path": "data/raw/osm/manhattan_roads.json",
+      "bytes": 41313498,
+      "sha256": "6ae6037e9f110730d8132cfa3d30a7a0d56a4fddf3c0d229e94e9292bb694494"
+    },
+    {
+      "name": "nyc_tlc_yellow_2024_01",
+      "url": "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-01.parquet",
+      "path": "data/raw/traffic/yellow_tripdata_2024-01.parquet",
+      "kind": "traffic",
+      "local_path": "data/raw/traffic/yellow_tripdata_2024-01.parquet",
+      "bytes": 49961641,
+      "sha256": "c4d59da7bbc8abaeeeb1727947ee93d9891a71acb42854bd80db1571b2030510"
+    },
+    {
+      "name": "noaa_ghcn_central_park",
+      "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/by_station/USW00094728.csv.gz",
+      "path": "data/raw/weather/USW00094728.csv.gz",
+      "kind": "weather",
+      "local_path": "data/raw/weather/USW00094728.csv.gz",
+      "bytes": 1816668,
+      "sha256": "e9a6f4bfd0e04dc2af2c08a30f5dd49b123a35d52bf32b42cbd17dbbd091be6a"
+    },
+    {
+      "name": "uci_bike_sharing",
+      "url": "https://archive.ics.uci.edu/static/public/275/bike+sharing+dataset.zip",
+      "path": "data/raw/demand/bike_sharing.zip",
+      "kind": "demand",
+      "local_path": "data/raw/demand/bike_sharing.zip",
+      "bytes": 279992,
+      "sha256": "b70182d0d0508e9abbb79306ce5c0cec34869000f8220175ac83d11dbe845401"
+    },
+    {
+      "name": "uci_logistics_orders",
+      "url": "https://archive.ics.uci.edu/static/public/409/daily+demand+forecasting+orders.zip",
+      "path": "data/raw/orders/daily_demand.zip",
+      "kind": "orders",
+      "local_path": "data/raw/orders/daily_demand.zip",
+      "bytes": 5306,
+      "sha256": "f08fccb09e3e5817984fd34628700dfac25b50562644d1cba460d86a51ff1cd3"
+    },
+    {
+      "name": "us_holidays_2024",
+      "kind": "events",
+      "local_path": "data/raw/events/us_holidays_2024.csv",
+      "rows": 3,
+      "source": "python-holidays rules for United States federal holidays"
+    }
+  ]
+}

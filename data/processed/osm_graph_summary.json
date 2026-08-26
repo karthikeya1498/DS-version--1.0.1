@@ -1,0 +1,6 @@
+{
+  "source": "data/raw/osm/manhattan_roads.json",
+  "nodes": 176597,
+  "directed_edges": 407571,
+  "graph_built": true
+}
