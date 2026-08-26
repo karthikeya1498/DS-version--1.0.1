@@ -14,6 +14,7 @@ from src.dashboard.data import (
     dispatch_rows,
     load_benchmark,
     load_forecast_metrics,
+    load_osm_edges,
     load_phase1_status,
     vehicle_dispatch_rows,
 )
@@ -42,8 +43,13 @@ for col, (label, key) in zip(cols, [('Orders', 'total_orders'), ('Delivered', 'd
 network_tab, dispatch_tab, forecast_tab, benchmark_tab = st.tabs(['Road network', 'Live dispatches', 'Demand forecast', 'Algorithm benchmark'])
 with network_tab:
     st.subheader('Road-network graph')
-    fig, ax = plt.subplots(figsize=(9, 5)); n = max(3, int(status.get('nodes', snapshot.get('nodes', 5)))); xs = list(range(n)); ys = [(index * 2) % max(3, n // 2 + 1) for index in xs]
-    ax.plot(xs, ys, color='#38bdf8', linewidth=1.5, alpha=.65); ax.scatter(xs, ys, s=45, color='#0f766e', zorder=3); ax.set_xlabel('Node sequence'); ax.set_ylabel('Road-network coordinate'); ax.grid(alpha=.2); st.pyplot(fig, clear_figure=True)
+    fig, ax = plt.subplots(figsize=(9, 5)); edges = load_osm_edges(ROOT); n = max(3, int(status.get('nodes', snapshot.get('nodes', 5))));
+    if not edges.empty:
+        for row in edges.itertuples(index=False): ax.plot([row.x0, row.x1], [row.y0, row.y1], color='#38bdf8', linewidth=.45, alpha=.3)
+        ax.set_xlabel('Longitude'); ax.set_ylabel('Latitude')
+    else:
+        xs = list(range(n)); ys = [(index * 2) % max(3, n // 2 + 1) for index in xs]; ax.plot(xs, ys, color='#38bdf8', linewidth=1.5, alpha=.65); ax.scatter(xs, ys, s=45, color='#0f766e', zorder=3); ax.set_xlabel('Node sequence'); ax.set_ylabel('Road-network coordinate')
+    ax.grid(alpha=.2); st.pyplot(fig, clear_figure=True)
     st.info(f"Graph built: {status.get('graph_built', True)} | Nodes: {status.get('nodes', n)} | Edges: {status.get('edges', 'available through graph builder')}")
 with dispatch_tab:
     st.subheader('Live vehicle dispatch state')
@@ -54,7 +60,7 @@ with forecast_tab:
     st.subheader('XGBoost demand forecast metrics')
     forecast = load_forecast_metrics(ROOT)
     if not forecast.empty and {'mae', 'rmse'}.issubset(forecast.columns): st.bar_chart(forecast.set_index('model')[['mae', 'rmse']])
-    else: st.info('Run scripts/train_phase2_demand.py to populate forecast artifacts.')
+    else: st.info('Run scripts/train_unified_demand.py to populate unified forecast artifacts.')
 with benchmark_tab:
     st.subheader('Dijkstra versus A*')
     benchmark = load_benchmark(ROOT)
