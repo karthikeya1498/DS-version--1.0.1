@@ -59,3 +59,60 @@ CREATE TABLE IF NOT EXISTS scenarios (
     config JSONB NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS decision_records (
+    decision_id TEXT PRIMARY KEY,
+    scenario_id TEXT NOT NULL REFERENCES scenarios(scenario_id),
+    state_reference TEXT NOT NULL,
+    dataset_version TEXT NOT NULL,
+    model_versions JSONB NOT NULL DEFAULT '{}'::jsonb,
+    solver_version TEXT NOT NULL,
+    rl_policy_version TEXT NOT NULL DEFAULT '',
+    selected_action TEXT NOT NULL,
+    objective_metrics JSONB NOT NULL DEFAULT '{}'::jsonb,
+    code_commit TEXT NOT NULL DEFAULT '',
+    experiment_id TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS decision_candidates (
+    candidate_id TEXT PRIMARY KEY,
+    decision_id TEXT NOT NULL REFERENCES decision_records(decision_id),
+    action TEXT NOT NULL,
+    feasible BOOLEAN NOT NULL,
+    objective DOUBLE PRECISION NOT NULL,
+    rejection_reason TEXT NOT NULL DEFAULT '',
+    metrics JSONB NOT NULL DEFAULT '{}'::jsonb
+);
+CREATE TABLE IF NOT EXISTS decision_traces (
+    trace_id BIGSERIAL PRIMARY KEY,
+    decision_id TEXT NOT NULL REFERENCES decision_records(decision_id),
+    trace JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS tool_calls (
+    tool_call_id BIGSERIAL PRIMARY KEY,
+    decision_id TEXT,
+    tool_name TEXT NOT NULL,
+    arguments JSONB NOT NULL DEFAULT '{}'::jsonb,
+    result JSONB NOT NULL DEFAULT '{}'::jsonb,
+    grounded BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS explanations (
+    explanation_id BIGSERIAL PRIMARY KEY,
+    decision_id TEXT NOT NULL REFERENCES decision_records(decision_id),
+    prompt_version TEXT NOT NULL,
+    model_version TEXT NOT NULL DEFAULT '',
+    evidence JSONB NOT NULL DEFAULT '{}'::jsonb,
+    text TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS scenario_modifications (
+    modification_id BIGSERIAL PRIMARY KEY,
+    scenario_id TEXT NOT NULL REFERENCES scenarios(scenario_id),
+    demand_multiplier DOUBLE PRECISION NOT NULL CHECK (demand_multiplier >= 0),
+    traffic_multiplier DOUBLE PRECISION NOT NULL CHECK (traffic_multiplier >= 0),
+    unavailable_vehicle_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
+    lateness_weight DOUBLE PRECISION,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

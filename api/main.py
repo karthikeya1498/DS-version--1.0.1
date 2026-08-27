@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from api.routes.assistant import router as assistant_router
 from api.routes.auth import router as auth_router
 from api.routes.decisions import router as decisions_router
 from api.routes.eta import router as eta_router
@@ -9,6 +10,7 @@ from api.routes.health import router as health_router
 from api.routes.optimization import router as optimization_router
 from api.routes.realtime import router as realtime_router
 from api.routes.routing import router as routing_router
+from api.routes.scenarios import router as scenarios_router
 from api.routes.simulation import router as simulation_router
 from api.routes.traffic import router as traffic_router
 from src.common.config import get_settings
@@ -29,6 +31,8 @@ app.include_router(routing_router, prefix="/api/v1")
 app.include_router(decisions_router, prefix="/api/v1")
 app.include_router(experiments_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(assistant_router, prefix="/api/v1")
+app.include_router(scenarios_router, prefix="/api/v1")
 app.include_router(traffic_router, prefix="/api/v1")
 app.include_router(realtime_router, prefix="/api/v1")
 
