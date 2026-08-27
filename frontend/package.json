@@ -1,1 +1,17 @@
-{"name":"optima-x-frontend","private":true,"version":"0.1.0","type":"module","scripts":{"dev":"vite","build":"vite build"},"devDependencies":{"vite":"^6.0.0"}}
+{
+  "name": "optima-x-frontend",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "author": "Karthikeya",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
+  }
+}
