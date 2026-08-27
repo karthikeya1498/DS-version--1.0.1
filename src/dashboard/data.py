@@ -46,6 +46,10 @@ def load_phase3_sensitivity(root: str | Path) -> pd.DataFrame:
     return pd.DataFrame(payload.get('prediction_error_sensitivity', []))
 
 
+def load_rl_evaluation(root: str | Path) -> dict:
+    return load_json(Path(root) / 'data/processed/phase4/evaluation.json', {})
+
+
 def load_benchmark(root: str | Path) -> pd.DataFrame:
     path = Path(root) / 'data/processed/graph_benchmark.csv'; return pd.read_csv(path) if path.exists() else pd.DataFrame()
 

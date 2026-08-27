@@ -18,6 +18,7 @@ from src.dashboard.data import (
     load_phase1_status,
     load_phase3_comparison,
     load_phase3_sensitivity,
+    load_rl_evaluation,
     vehicle_dispatch_rows,
 )
 
@@ -42,7 +43,7 @@ metrics = snapshot.get('metrics', {})
 cols = st.columns(5)
 for col, (label, key) in zip(cols, [('Orders', 'total_orders'), ('Delivered', 'delivered_orders'), ('Late', 'late_deliveries'), ('Unserved', 'unserved_orders'), ('Cost', 'total_cost')]): col.metric(label, metrics.get(key, 0))
 
-network_tab, dispatch_tab, forecast_tab, benchmark_tab, optimization_tab = st.tabs(['Road network', 'Live dispatches', 'Demand forecast', 'Algorithm benchmark', 'Phase 3 optimization'])
+network_tab, dispatch_tab, forecast_tab, benchmark_tab, optimization_tab, rl_tab = st.tabs(['Road network', 'Live dispatches', 'Demand forecast', 'Algorithm benchmark', 'Phase 3 optimization', 'Phase 4 RL'])
 with network_tab:
     st.subheader('Road-network graph')
     fig, ax = plt.subplots(figsize=(9, 5)); edges = load_osm_edges(ROOT); n = max(3, int(status.get('nodes', snapshot.get('nodes', 5))));
@@ -78,5 +79,12 @@ with optimization_tab:
     if not sensitivity.empty:
         st.caption('Prediction error propagated through the same optimizer')
         st.line_chart(sensitivity.set_index('forecast_error')[['decision_cost']])
+with rl_tab:
+    st.subheader('Phase 4 sequential reinforcement learning')
+    rl = load_rl_evaluation(ROOT)
+    if rl:
+        st.json({'algorithm': rl.get('algorithm'), 'episodes': rl.get('episodes'), 'ppo_mean_return': rl.get('ppo_mean_return'), 'baseline_mean_return': rl.get('baseline_mean_return')})
+        st.caption('PPO is evaluated against the fixed all-defer baseline on unseen seeded scenarios.')
+    else: st.info('Run scripts/run_phase4_experiments.py to populate RL artifacts.')
 
 st.divider(); st.caption(f"Scenario {snapshot.get('scenario_id', 'S042')} | Seed {seed} | Simulation {snapshot.get('simulation', 'SUCCESS')}")
