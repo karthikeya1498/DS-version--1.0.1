@@ -21,6 +21,8 @@ class TrainingMetrics:
     returns: tuple[float, ...]
     mean_return: float
     final_return: float
+    policy_losses: tuple[float, ...] = ()
+    value_losses: tuple[float, ...] = ()
 
 class PPOAgent:
     """Linear policy/value PPO reference implementation without a framework dependency."""
@@ -68,7 +70,7 @@ class PPOAgent:
         return {'policy_loss': float(policy_loss / count), 'value_loss': float(value_loss / count)}
 
     def train(self, env, episodes: int = 100) -> TrainingMetrics:
-        returns = []
+        returns, policy_losses, value_losses = [], [], []
         for _ in range(episodes):
             observation = env.reset()
             observations, actions, log_probs, rewards, values = [], [], [], [], []
@@ -87,6 +89,6 @@ class PPOAgent:
                 advantages.append(gae); next_value = value
             advantages = np.asarray(list(reversed(advantages)))
             targets = advantages + np.asarray(values)
-            self.update(np.asarray(observations), np.asarray(actions), np.asarray(log_probs), advantages, targets)
-            returns.append(float(sum(rewards)))
-        return TrainingMetrics(episodes, tuple(returns), float(np.mean(returns)) if returns else 0.0, float(returns[-1]) if returns else 0.0)
+            losses = self.update(np.asarray(observations), np.asarray(actions), np.asarray(log_probs), advantages, targets)
+            policy_losses.append(losses['policy_loss']); value_losses.append(losses['value_loss']); returns.append(float(sum(rewards)))
+        return TrainingMetrics(episodes, tuple(returns), float(np.mean(returns)) if returns else 0.0, float(returns[-1]) if returns else 0.0, tuple(policy_losses), tuple(value_losses))
