@@ -12,9 +12,10 @@ from src.rl.environment.state import LogisticsState
 
 class MultiAgentLogisticsEnv:
     """Small deterministic environment suitable for PPO and classical baselines."""
-    def __init__(self, agents: int = 3, zones: int = 5, horizon: int = 24, demand_rate: float = 2.0, reward_weights: RewardWeights = RewardWeights()):
+    def __init__(self, agents: int = 3, zones: int = 5, horizon: int = 24, demand_rate: float = 2.0, reward_weights: RewardWeights | None = None):
         if min(agents, zones, horizon) <= 0: raise ValueError('agents, zones, and horizon must be positive')
-        self.agents, self.zones, self.horizon, self.demand_rate, self.reward_weights = agents, zones, horizon, demand_rate, reward_weights
+        self.agents, self.zones, self.horizon, self.demand_rate = agents, zones, horizon, demand_rate
+        self.reward_weights = reward_weights or RewardWeights(reward_scale=50.0, reward_clip=10.0)
         self.action_count = len(Action); self.rng = np.random.default_rng(42); self.reset(42)
 
     def reset(self, seed: int | None = None) -> np.ndarray:
