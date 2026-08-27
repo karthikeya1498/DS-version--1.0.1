@@ -11,3 +11,5 @@ jobs:
       - run: pip install -e '.[dev]'
       - run: pytest -q
       - run: ruff check .
+      - name: Check model regression thresholds
+        run: python scripts/check_model_regression.py --candidate configs/quality/model_regression_candidate.json
