@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter
@@ -5,8 +6,8 @@ from fastapi import APIRouter
 from src.dsa.graphs.edge import Edge
 from src.dsa.graphs.graph import RoadGraph
 from src.dsa.graphs.node import Node
+from src.optimization.phase3_engine import Phase3Solver, Prediction
 from src.optimization.routing.graph_dispatch import GraphDispatchRouter
-from src.optimization.solver.hybrid_solver import HybridSolver
 from src.simulation.models import Location, Order, TimeWindow, Vehicle
 
 router = APIRouter(prefix="/optimization", tags=["optimization"])
@@ -25,4 +26,5 @@ def optimization_demo():
         "demo-order", origin, destination, 1, now, TimeWindow(now, now + timedelta(hours=2))
     )
     vehicle = Vehicle("demo-vehicle", origin, 10, now, now + timedelta(hours=8))
-    return HybridSolver(GraphDispatchRouter(graph)).solve([order], [vehicle])
+    result = Phase3Solver(GraphDispatchRouter(graph)).solve([order], [vehicle], {'demo-order': Prediction(demand=1, eta_minutes=2, late_risk=0.01)}, method='greedy')
+    return {'strategy': 'graph_dispatch', 'solver_strategy': result.strategy, 'total_cost': result.total_cost, 'served_orders': result.served_orders, 'unserved_orders': result.unserved_orders, 'runtime_ms': result.runtime_ms, 'routes': [asdict(route) for route in result.routes]}
