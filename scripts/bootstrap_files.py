@@ -16,7 +16,7 @@ OPTIMA-X is a Python-first hybrid decision and optimization engine for dynamic u
 
 ## Step 1 status
 
-This first scaffold provides the modular-monolith directory structure, configuration conventions, FastAPI health endpoint, Docker/PostgreSQL development setup, frontend placeholder, CI, and a testable package foundation. Domain algorithms will be implemented incrementally in the planned order: simulator, graph/DSA, ML, optimizer, benchmarks, API, dashboard, RL, and explanation tooling.
+This first scaffold provides the modular-monolith directory structure, configuration conventions, FastAPI health endpoint, Docker/PostgreSQL development setup, TypeScript/HTML/CSS dashboard foundation, CI, and a testable package foundation. Domain algorithms will be implemented incrementally in the planned order: simulator, graph/DSA, ML, optimizer, benchmarks, API, dashboard, RL, and explanation tooling.
 
 ## Quick start
 
@@ -264,13 +264,32 @@ CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
 volumes:
   postgres_data:
 """,
-    "frontend/package.json": """{"name":"optima-x-frontend","private":true,"version":"0.1.0","type":"module","scripts":{"dev":"vite","build":"vite build"},"devDependencies":{"vite":"^6.0.0"}}""",
+    "frontend/package.json": """{
+  "name": "optima-x-frontend", "private": true, "version": "0.2.0", "type": "module", "author": "Karthikeya",
+  "scripts": { "dev": "vite", "build": "tsc --noEmit && vite build", "check": "tsc --noEmit" },
+  "devDependencies": { "@types/node": "^22.0.0", "typescript": "^5.7.0", "vite": "^6.0.0" }
+}""",
+    "frontend/tsconfig.json": """{
+  "compilerOptions": { "target": "ES2022", "module": "ESNext", "moduleResolution": "Bundler", "strict": true, "noEmit": true, "skipLibCheck": true, "lib": ["ES2022", "DOM", "DOM.Iterable"] },
+  "include": ["src"]
+}""",
     "frontend/vite.config.js": """import { defineConfig } from 'vite';
 export default defineConfig({});
 """,
-    "frontend/index.html": """<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>OPTIMA-X</title></head><body><div id="app">OPTIMA-X dashboard placeholder</div><script type="module" src="/src/main.js"></script></body></html>
+    "frontend/index.html": """<!doctype html>
+<html lang="en">
+  <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>OPTIMA-X</title></head>
+  <body><div id="app">Loading OPTIMA-X dashboard…</div><script type="module" src="/src/main.ts"></script></body>
+</html>
 """,
-    "frontend/src/main.js": """document.querySelector('#app').textContent = 'OPTIMA-X dashboard foundation';
+    "frontend/src/main.ts": """/** OPTIMA-X TypeScript dashboard foundation. Author: Karthikeya. */
+import './style.css';
+const app = document.querySelector<HTMLDivElement>('#app');
+if (app) app.textContent = 'OPTIMA-X dashboard foundation';
+""",
+    "frontend/src/style.css": """/* OPTIMA-X dashboard foundation. Author: Karthikeya. */
+:root { color-scheme: dark; font-family: system-ui, sans-serif; background: #080a0f; color: #f4f7fb; }
+body { margin: 0; min-width: 320px; }
 """,
     "docs/research/methodology.md": """# OPTIMA-X Methodology
 
