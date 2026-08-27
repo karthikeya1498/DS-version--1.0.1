@@ -57,6 +57,8 @@ def test_phase5_api_record_explain_and_scenario():
     client = TestClient(app)
     response = client.post('/api/v1/decisions/record', json={'decision_id': 'api-d1', 'scenario_id': 'api-s1', 'selected_action': 'serve', 'objective_metrics': {'cost': 3.0}})
     assert response.status_code == 200
+    assert client.get('/api/v1/decisions/api-d1').status_code == 200
     assert client.post('/api/v1/decisions/explain', json={'decision_id': 'api-d1'}).json()['grounded'] is True
+    assert client.post('/api/v1/decisions/compare', json={'decision_id': 'api-d1'}).status_code == 200
     scenario = client.post('/api/v1/scenarios/simulate', json={'demand_multiplier': 1.25})
     assert scenario.status_code == 200 and scenario.json()['baseline_mutated'] is False
