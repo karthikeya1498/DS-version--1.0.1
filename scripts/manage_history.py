@@ -88,12 +88,14 @@ def ensure_traffic_partitions(engine: Engine, start: datetime, months: int) -> l
             name = f"traffic_history_{lower:%Y%m}"
             qname = f"{quote_identifier(SCHEMA)}.{quote_identifier(name)}"
             parent = f"{quote_identifier(SCHEMA)}.{quote_identifier(PARTITION_TABLE)}"
+            # Bounds are generated from validated UTC datetimes; PostgreSQL does not allow bind parameters in partition bounds.
+            lower_literal = lower.isoformat()
+            upper_literal = upper.isoformat()
             connection.execute(
                 text(
                     f"CREATE TABLE IF NOT EXISTS {qname} PARTITION OF {parent} "
-                    "FOR VALUES FROM (:lower) TO (:upper)"
-                ),
-                {"lower": lower, "upper": upper},
+                    f"FOR VALUES FROM ('{lower_literal}') TO ('{upper_literal}')"  # nosec B608
+                )
             )
             connection.execute(
                 text(

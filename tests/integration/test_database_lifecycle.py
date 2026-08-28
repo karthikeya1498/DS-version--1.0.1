@@ -38,8 +38,8 @@ def _seed_tenant_and_scenario(session: Session):
 def test_migration_exposes_all_mapped_tables(postgres_engine):
     inspector = inspect(postgres_engine)
     tables = set(inspector.get_table_names(schema="optima"))
-    assert tables == {table.name for table in Base.metadata.tables.values()}
-    assert len(tables) == 28
+    assert tables - {"traffic_history_default"} == {table.name for table in Base.metadata.tables.values()}
+    assert len(tables) == 29  # 28 mapped tables plus the non-mapped traffic default partition.
     assert "traffic_history_default" in tables
 
 
