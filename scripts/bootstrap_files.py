@@ -58,10 +58,15 @@ mlruns/*
 !mlruns/.gitkeep
 """,
     ".env.example": """APP_ENV=development
+AUTH_REQUIRED=false
+JWT_SECRET=replace-with-a-random-secret-of-at-least-32-characters
 LOG_LEVEL=INFO
 DATABASE_URL=postgresql+psycopg://optima:optima@localhost:5432/optima_x
-API_HOST=0.0.0.0
+API_HOST=127.0.0.1
 API_PORT=8000
+REDIS_PASSWORD=replace-with-a-strong-redis-password
+REDIS_URL=redis://:replace-with-a-strong-redis-password@localhost:6379/0
+CORS_ALLOWED_ORIGINS=http://localhost:4173
 """,
     "pyproject.toml": """[build-system]
 requires = ["setuptools>=68", "wheel"]
@@ -72,13 +77,12 @@ name = "optima-x"
 version = "0.1.0"
 description = "Hybrid ML, algorithms, optimization, and RL engine for dynamic decision optimization"
 requires-python = ">=3.11"
-dependencies = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "pydantic-settings>=2.6", "pyyaml>=6.0"]
+dependencies = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "pydantic-settings>=2.6", "pyyaml>=6.0", "defusedxml>=0.7.1", "redis>=5.0", "cryptography>=50.0.0"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.3", "pytest-asyncio>=0.24", "httpx>=0.27", "ruff>=0.8", "mypy>=1.13"]
 ml = ["pandas>=2.2", "numpy>=2.1", "scikit-learn>=1.5", "xgboost>=2.1", "torch>=2.5"]
 optimization = ["ortools>=9.11"]
-tracking = ["mlflow>=2.18"]
 database = ["sqlalchemy>=2.0", "psycopg[binary]>=3.2"]
 
 [tool.setuptools.packages.find]
@@ -96,12 +100,15 @@ testpaths = ["tests"]
 uvicorn[standard]>=0.30
 pydantic-settings>=2.6
 pyyaml>=6.0
+defusedxml>=0.7.1
+cryptography>=50.0.0
+redis>=5.0
 pandas>=2.2
 numpy>=2.1
 scikit-learn>=1.5
 xgboost>=2.1
 ortools>=9.11
-mlflow>=2.18
+pyarrow>=23.0.1
 sqlalchemy>=2.0
 psycopg[binary]>=3.2
 pytest>=8.3
@@ -146,7 +153,7 @@ class Settings(BaseSettings):
     app_env: str = "development"
     log_level: str = "INFO"
     database_url: str = "postgresql+psycopg://optima:optima@localhost:5432/optima_x"
-    api_host: str = "0.0.0.0"
+    api_host: str = "127.0.0.1"
     api_port: int = 8000
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

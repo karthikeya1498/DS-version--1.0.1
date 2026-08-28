@@ -61,14 +61,17 @@ async def tenant_rate_limit_middleware(request, call_next):
 
     token = request.headers.get("authorization", "").removeprefix("Bearer ").strip()
     tenant = "anonymous"
+    auth_required = os.getenv(
+        "AUTH_REQUIRED", "true" if os.getenv("APP_ENV", "development").lower() in {"prod", "production"} else "false"
+    ).lower() == "true"
     public = request.url.path in {"/", "/api/v1/health", "/api/v1/auth/token"}
     if token:
         try:
             tenant = decode_token(token).get("tenant_id", tenant)
         except Exception:
-            if os.getenv("AUTH_REQUIRED", "false").lower() == "true" and not public:
+            if auth_required and not public:
                 return JSONResponse({"detail": "invalid JWT"}, status_code=401)
-    elif os.getenv("AUTH_REQUIRED", "false").lower() == "true" and not public:
+    elif auth_required and not public:
         return JSONResponse({"detail": "Bearer token required"}, status_code=401)
     request.state.tenant_id = tenant
     if not public:
