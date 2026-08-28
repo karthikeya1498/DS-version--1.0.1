@@ -63,14 +63,18 @@ class TenantRateLimiter:
         limit: int = 60,
         window_seconds: int = 60,
         redis_url: str | None = None,
-        fail_open: bool = True,
+        fail_open: bool | None = None,
     ) -> None:
         self.limit = limit
         self.window_seconds = window_seconds
         self.capacity = float(limit)
         self.refill_per_second = self.capacity / window_seconds
         self.redis_url = redis_url or os.getenv("REDIS_URL")
-        self.fail_open = fail_open
+        self.fail_open = (
+            fail_open
+            if fail_open is not None
+            else os.getenv("APP_ENV", "development").lower() not in {"prod", "production"}
+        )
         self._redis: Any = Redis.from_url(self.redis_url, decode_responses=False) if Redis and self.redis_url else None
         self._fallback: dict[str, deque[float]] = defaultdict(deque)
         self._fallback_lock = asyncio.Lock()
