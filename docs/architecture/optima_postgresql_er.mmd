@@ -1,0 +1,190 @@
+%% OPTIMA-X PostgreSQL ER diagram
+%% Author: Karthikeya
+ erDiagram
+    TENANT ||--o{ SCENARIO : owns
+    TENANT ||--o{ VEHICLE : operates
+    TENANT ||--o{ LOGISTICS_ORDER : receives
+    TENANT ||--o{ TRAFFIC_HISTORY : observes
+    DATASET_VERSION ||--o{ SCENARIO : seeds
+    DATASET_VERSION ||--o{ ROAD_NODE : builds
+    DATASET_VERSION ||--o{ ROAD_EDGE : builds
+    SCENARIO ||--o{ VEHICLE_SHIFT : schedules
+    SCENARIO ||--o{ LOGISTICS_ORDER : contains
+    LOCATION ||--o{ VEHICLE : home
+    LOCATION ||--o{ LOGISTICS_ORDER : pickup
+    LOCATION ||--o{ LOGISTICS_ORDER : delivery
+    ROAD_NODE ||--o{ ROAD_EDGE : source
+    ROAD_NODE ||--o{ ROAD_EDGE : target
+    ROAD_EDGE ||--o{ TRAFFIC_HISTORY : measures
+    MODEL_VERSION ||--o{ DEMAND_PREDICTION : produces
+    MODEL_VERSION ||--o{ ETA_PREDICTION : produces
+    SCENARIO ||--o{ DEMAND_PREDICTION : forecasts
+    SCENARIO ||--o{ ETA_PREDICTION : forecasts
+    SCENARIO ||--o{ OPTIMIZATION_RUN : optimizes
+    OPTIMIZATION_RUN ||--o{ ROUTE_ASSIGNMENT : yields
+    ROUTE_ASSIGNMENT ||--o{ ROUTE_STOP : contains
+    VEHICLE ||--o{ ROUTE_ASSIGNMENT : assigned
+    LOGISTICS_ORDER ||--o{ ROUTE_STOP : served
+    RL_EXPERIMENT ||--o{ RL_EPISODE : runs
+    RL_EPISODE ||--o{ RL_STEP : contains
+    SCENARIO ||--o{ RL_EPISODE : evaluates
+    MODEL_VERSION ||--o{ RL_EXPERIMENT : policy
+    SCENARIO ||--o{ DECISION_RECORD : informs
+    OPTIMIZATION_RUN ||--o{ DECISION_RECORD : contributes
+    RL_EPISODE ||--o{ DECISION_RECORD : contributes
+    MODEL_VERSION ||--o{ DECISION_RECORD : versions
+    DECISION_RECORD ||--o{ DECISION_CANDIDATE : compares
+    DECISION_RECORD ||--o{ DECISION_TRACE : traces
+    DECISION_RECORD ||--o{ EVIDENCE_ITEM : supports
+    DECISION_RECORD ||--o{ TOOL_CALL : invokes
+    DECISION_RECORD ||--o{ SCENARIO_MODIFICATION : explains
+    SCENARIO ||--o{ SCENARIO_MODIFICATION : baseline
+    SCENARIO ||--o{ SCENARIO_MODIFICATION : derived
+    SYSTEM_EVENT }o--|| TENANT : scopes
+    BENCHMARK_RUN }o--|| SCENARIO : evaluates
+    BENCHMARK_RUN }o--|| RL_EXPERIMENT : references
+
+    TENANT { uuid tenant_id PK
+        text tenant_key UK
+        text display_name }
+    DATASET_VERSION { uuid dataset_id PK
+        uuid tenant_id FK
+        text name
+        text version
+        char content_sha256 }
+    SCENARIO { uuid scenario_id PK
+        uuid tenant_id FK
+        uuid dataset_id FK
+        text scenario_key
+        bigint seed
+        timestamptz starts_at
+        text status }
+    LOCATION { uuid location_id PK
+        uuid tenant_id FK
+        text zone_id
+        numeric latitude
+        numeric longitude }
+    ROAD_NODE { text node_id PK
+        uuid dataset_id FK
+        numeric latitude
+        numeric longitude }
+    ROAD_EDGE { text edge_id PK
+        text source_node_id FK
+        text target_node_id FK
+        numeric distance_km
+        numeric base_travel_time_sec }
+    VEHICLE { uuid vehicle_id PK
+        uuid tenant_id FK
+        text external_key UK
+        integer capacity_units
+        text status }
+    VEHICLE_SHIFT { uuid shift_id PK
+        uuid vehicle_id FK
+        uuid scenario_id FK
+        timestamptz available_from
+        timestamptz available_until }
+    LOGISTICS_ORDER { uuid order_id PK
+        uuid tenant_id FK
+        uuid scenario_id FK
+        text external_key
+        text status
+        timestamptz window_start
+        timestamptz window_end }
+    TRAFFIC_HISTORY { uuid traffic_id PK
+        uuid tenant_id FK
+        text zone_id
+        text edge_id FK
+        timestamptz observed_at PK
+        numeric multiplier
+        text source }
+    MODEL_VERSION { uuid model_id PK
+        uuid tenant_id FK
+        text model_name
+        text version
+        text feature_version }
+    DEMAND_PREDICTION { uuid prediction_id PK
+        uuid model_id FK
+        uuid scenario_id FK
+        text zone_id
+        timestamptz forecast_for
+        numeric predicted_units }
+    ETA_PREDICTION { uuid eta_prediction_id PK
+        uuid model_id FK
+        uuid scenario_id FK
+        uuid order_id FK
+        numeric predicted_seconds }
+    OPTIMIZATION_RUN { uuid optimization_run_id PK
+        uuid scenario_id FK
+        text algorithm
+        text status
+        numeric objective_value
+        boolean feasible }
+    ROUTE_ASSIGNMENT { uuid assignment_id PK
+        uuid optimization_run_id FK
+        uuid vehicle_id FK
+        integer route_rank }
+    ROUTE_STOP { uuid stop_id PK
+        uuid assignment_id FK
+        uuid order_id FK
+        integer sequence_no
+        uuid location_id FK }
+    RL_EXPERIMENT { uuid experiment_id PK
+        uuid policy_model_id FK
+        text algorithm
+        jsonb config }
+    RL_EPISODE { uuid episode_id PK
+        uuid experiment_id FK
+        uuid scenario_id FK
+        bigint seed
+        integer episode_no
+        numeric total_reward }
+    RL_STEP { bigint step_id PK
+        uuid episode_id FK
+        integer step_no
+        jsonb state
+        jsonb action
+        numeric reward }
+    DECISION_RECORD { uuid decision_id PK
+        uuid tenant_id FK
+        uuid scenario_id FK
+        uuid optimization_run_id FK
+        uuid episode_id FK
+        text algorithm
+        jsonb selected_action
+        timestamptz created_at }
+    DECISION_CANDIDATE { uuid candidate_id PK
+        uuid decision_id FK
+        smallint rank
+        jsonb action
+        boolean feasible }
+    DECISION_TRACE { uuid trace_id PK
+        uuid decision_id FK
+        text component
+        text event_type
+        timestamptz occurred_at }
+    EVIDENCE_ITEM { uuid evidence_id PK
+        uuid decision_id FK
+        text source_table
+        text source_id
+        jsonb value }
+    TOOL_CALL { uuid tool_call_id PK
+        uuid decision_id FK
+        text tool_name
+        boolean success
+        timestamptz requested_at }
+    SCENARIO_MODIFICATION { uuid modification_id PK
+        uuid decision_id FK
+        uuid base_scenario_id FK
+        uuid derived_scenario_id FK
+        jsonb changes }
+    SYSTEM_EVENT { uuid event_id PK
+        uuid tenant_id FK
+        text component
+        text event_type
+        timestamptz occurred_at }
+    BENCHMARK_RUN { uuid benchmark_id PK
+        uuid scenario_id FK
+        uuid experiment_id FK
+        text algorithm_version
+        bigint seed
+        numeric runtime_ms }
