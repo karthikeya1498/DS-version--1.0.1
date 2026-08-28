@@ -7,7 +7,8 @@ from __future__ import annotations
 
 from itertools import pairwise
 from pathlib import Path
-from xml.etree import ElementTree
+
+from defusedxml import ElementTree
 
 from src.dsa.graphs.edge import Edge
 from src.dsa.graphs.graph import RoadGraph
