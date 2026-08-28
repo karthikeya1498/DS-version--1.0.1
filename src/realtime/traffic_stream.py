@@ -1,4 +1,7 @@
-"""In-process traffic and route re-optimization event stream."""
+"""In-process traffic and route re-optimization event stream.
+
+Author: Karthikeya
+"""
 
 from __future__ import annotations
 
@@ -8,18 +11,23 @@ from typing import Any
 
 
 class TrafficStream:
-    def __init__(self):
+    """Broadcast bounded events to currently connected subscribers."""
+
+    def __init__(self) -> None:
         self._subscribers: set[asyncio.Queue] = set()
 
-    async def subscribe(self):
+    async def subscribe(self) -> asyncio.Queue:
+        """Create and register a bounded queue for one WebSocket client."""
         queue: asyncio.Queue = asyncio.Queue(maxsize=100)
         self._subscribers.add(queue)
         return queue
 
-    def unsubscribe(self, queue):
+    def unsubscribe(self, queue: asyncio.Queue) -> None:
+        """Remove a disconnected client queue."""
         self._subscribers.discard(queue)
 
-    async def publish(self, event_type: str, payload: dict[str, Any]):
+    async def publish(self, event_type: str, payload: dict[str, Any]) -> None:
+        """Broadcast one event with O(subscribers) non-blocking queue writes."""
         event = {
             "event_type": event_type,
             "timestamp": datetime.now(UTC).isoformat(),
@@ -28,7 +36,7 @@ class TrafficStream:
         for queue in tuple(self._subscribers):
             if queue.full():
                 queue.get_nowait()
-            await queue.put(event)
+            queue.put_nowait(event)
 
 
 traffic_stream = TrafficStream()
