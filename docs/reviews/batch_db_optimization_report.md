@@ -26,3 +26,10 @@ The result is a local TestClient/Redis measurement. It demonstrates request-amor
 The repository does not contain a publicly reachable production dashboard URL; its deployment documentation exposes local API and Streamlit addresses. Therefore, the post-deployment check uses the deployed-equivalent FastAPI process and browser dashboard build locally, with the same authentication and WebSocket contracts. The verification should confirm API health, TypeScript production build, authenticated WebSocket connection, receipt of traffic events, reconnect behavior after a server restart, and no loss of the REST simulation path.
 
 A real external deployment URL can be substituted with `BASE_URL` and `WS_URL` when the hosting target is available.
+
+
+## Browser verification findings
+
+The first browser check exposed a deployment configuration defect: the Vite development server rejected the temporary proxied host, and the API origin was hardcoded to localhost. The optimization branch now includes Vite `allowedHosts` configuration, typed `VITE_API_ORIGIN` support, and configurable API CORS origins. After restarting the API and dashboard with the exposed origins, the browser displayed **Live** for the WebSocket connection.
+
+A live traffic update for zone `live-verification` with a `1.35` multiplier and `vehicle-qa` was published through the API and appeared in the dashboard event list. The seeded scenario action also completed successfully with 6 total orders, 6 delivered orders, 0 late deliveries, 0 unserved orders, and a total cost of 1.413. This confirms the REST simulation path and live WebSocket telemetry operate concurrently in the deployed-equivalent environment.
