@@ -1,4 +1,7 @@
+import os
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes.assistant import router as assistant_router
 from api.routes.auth import router as auth_router
@@ -22,6 +25,18 @@ configure_logging(settings.log_level)
 app = FastAPI(
     title="OPTIMA-X API", version="0.1.0", description="Decision and optimization engine API"
 )
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:4173").split(",")
+    if origin.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(simulation_router, prefix="/api/v1")
 app.include_router(optimization_router, prefix="/api/v1")
@@ -39,8 +54,6 @@ app.include_router(realtime_router, prefix="/api/v1")
 
 @app.middleware("http")
 async def tenant_rate_limit_middleware(request, call_next):
-    import os
-
     from fastapi.responses import JSONResponse
 
     from src.security.auth import decode_token

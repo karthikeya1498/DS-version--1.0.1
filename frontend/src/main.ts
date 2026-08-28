@@ -34,7 +34,7 @@ type TrafficEvent = {
 
 type TokenResponse = { access_token: string };
 
-const API_ORIGIN = 'http://localhost:8000';
+const API_ORIGIN = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:8000';
 const API_URL = `${API_ORIGIN}/api/v1/simulation/run`;
 const TOKEN_URL = `${API_ORIGIN}/api/v1/auth/token`;
 const WS_URL = `${API_ORIGIN.replace(/^http/, 'ws')}/api/v1/ws/traffic`;
