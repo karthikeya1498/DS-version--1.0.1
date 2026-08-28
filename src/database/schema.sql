@@ -39,12 +39,14 @@ CREATE TABLE IF NOT EXISTS orders (
     CHECK (window_end > window_start)
 );
 CREATE INDEX IF NOT EXISTS orders_created_idx ON orders(created_at);
+CREATE INDEX IF NOT EXISTS orders_status_window_idx ON orders(status, window_start, window_end);
 CREATE TABLE IF NOT EXISTS traffic (
     observed_at TIMESTAMPTZ NOT NULL,
     zone_id TEXT NOT NULL,
     multiplier DOUBLE PRECISION NOT NULL CHECK (multiplier > 0),
     PRIMARY KEY (observed_at, zone_id)
 );
+CREATE INDEX IF NOT EXISTS traffic_zone_observed_idx ON traffic(zone_id, observed_at DESC);
 CREATE TABLE IF NOT EXISTS weather (
     observed_at TIMESTAMPTZ NOT NULL,
     zone_id TEXT NOT NULL,
@@ -74,6 +76,9 @@ CREATE TABLE IF NOT EXISTS decision_records (
     experiment_id TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE INDEX IF NOT EXISTS decision_records_scenario_created_idx
+    ON decision_records(scenario_id, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS decision_candidates (
     candidate_id TEXT PRIMARY KEY,
     decision_id TEXT NOT NULL REFERENCES decision_records(decision_id),
@@ -83,6 +88,9 @@ CREATE TABLE IF NOT EXISTS decision_candidates (
     rejection_reason TEXT NOT NULL DEFAULT '',
     metrics JSONB NOT NULL DEFAULT '{}'::jsonb
 );
+CREATE INDEX IF NOT EXISTS decision_traces_decision_created_idx
+    ON decision_traces(decision_id, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS decision_traces (
     trace_id BIGSERIAL PRIMARY KEY,
     decision_id TEXT NOT NULL REFERENCES decision_records(decision_id),
