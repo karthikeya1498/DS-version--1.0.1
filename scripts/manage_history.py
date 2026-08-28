@@ -190,8 +190,9 @@ def archive_decisions(engine: Engine, cutoff: datetime, dry_run: bool = False) -
     with engine.begin() as connection:
         ensure_decision_archive_tables(connection)
         count = connection.execute(
+            # The schema is constant and identifiers are strictly quoted.
             text(
-                f"SELECT count(*) FROM {quote_identifier(SCHEMA)}.decision_record WHERE created_at < :cutoff"
+                f"SELECT count(*) FROM {quote_identifier(SCHEMA)}.decision_record WHERE created_at < :cutoff"  # nosec B608
             ),
             {"cutoff": cutoff},
         ).scalar_one()
@@ -209,16 +210,18 @@ def archive_decisions(engine: Engine, cutoff: datetime, dry_run: bool = False) -
             source = f"{quote_identifier(SCHEMA)}.{quote_identifier(table)}"
             target = f"{quote_identifier(ARCHIVE_SCHEMA)}.{quote_identifier(table)}"
             connection.execute(
+                # Table names come from the fixed DECISION_ARCHIVE_TABLES allowlist.
                 text(
-                    f"INSERT INTO {target} SELECT s.* FROM {source} s "
+                    f"INSERT INTO {target} SELECT s.* FROM {source} s "  # nosec B608
                     f"WHERE EXISTS (SELECT 1 FROM {quote_identifier(SCHEMA)}.decision_record d WHERE d.decision_id = s.{quote_identifier(key)} AND d.created_at < :cutoff) "
                     f"AND NOT EXISTS (SELECT 1 FROM {target} a WHERE a.{quote_identifier(key)} = s.{quote_identifier(key)})"
                 ),
                 {"cutoff": cutoff},
             )
         connection.execute(
+            # Archive/source schemas are constants and identifiers are strictly quoted.
             text(
-                f"INSERT INTO {quote_identifier(ARCHIVE_SCHEMA)}.decision_record "
+                f"INSERT INTO {quote_identifier(ARCHIVE_SCHEMA)}.decision_record "  # nosec B608
                 f"SELECT s.* FROM {quote_identifier(SCHEMA)}.decision_record s "
                 f"WHERE s.created_at < :cutoff AND NOT EXISTS (SELECT 1 FROM {quote_identifier(ARCHIVE_SCHEMA)}.decision_record a WHERE a.decision_id = s.decision_id)"
             ),
@@ -226,14 +229,16 @@ def archive_decisions(engine: Engine, cutoff: datetime, dry_run: bool = False) -
         )
         for table in predicates:
             connection.execute(
+                # Table names come from the fixed decision-lineage allowlist.
                 text(
-                    f"DELETE FROM {quote_identifier(SCHEMA)}.{quote_identifier(table)} s WHERE EXISTS "
+                    f"DELETE FROM {quote_identifier(SCHEMA)}.{quote_identifier(table)} s WHERE EXISTS "  # nosec B608
                     f"(SELECT 1 FROM {quote_identifier(ARCHIVE_SCHEMA)}.decision_record d WHERE d.decision_id = s.decision_id)"
                 )
             )
         connection.execute(
+            # The schema is constant and identifiers are strictly quoted.
             text(
-                f"DELETE FROM {quote_identifier(SCHEMA)}.decision_record WHERE created_at < :cutoff"
+                f"DELETE FROM {quote_identifier(SCHEMA)}.decision_record WHERE created_at < :cutoff"  # nosec B608
             ),
             {"cutoff": cutoff},
         )
