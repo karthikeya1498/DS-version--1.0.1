@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     app_env: str = "development"
     log_level: str = "INFO"
     database_url: str = "postgresql+psycopg://optima:optima@localhost:5432/optima_x"
-    api_host: str = "0.0.0.0"
+    api_host: str = "127.0.0.1"
     api_port: int = 8000
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
