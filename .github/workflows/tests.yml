@@ -3,13 +3,35 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql+psycopg://optima:optima@localhost:5432/optima_test
+      OPTIMA_TEST_DATABASE_URL: postgresql+psycopg://optima:optima@localhost:5432/optima_test
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: optima_test
+          POSTGRES_USER: optima
+          POSTGRES_PASSWORD: optima
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U optima -d optima_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install -e '.[dev]'
-      - run: pytest -q
+      - run: pip install -e '.[dev,database]'
+      - name: Apply Alembic migrations
+        run: alembic upgrade head
+      - name: Run PostgreSQL integration tests
+        run: pytest -m integration -q
+      - name: Run unit and API tests
+        run: pytest -m 'not integration' -q
       - run: ruff check .
       - name: Check model regression thresholds
         run: python scripts/check_model_regression.py --candidate configs/quality/model_regression_candidate.json
