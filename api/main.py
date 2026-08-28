@@ -59,10 +59,17 @@ async def tenant_rate_limit_middleware(request, call_next):
         return JSONResponse({"detail": "Bearer token required"}, status_code=401)
     request.state.tenant_id = tenant
     if not public:
-        try:
-            limiter.check(tenant)
-        except Exception:
-            return JSONResponse({"detail": "rate limit exceeded"}, status_code=429)
+        decision = await limiter.acquire(tenant)
+        if not decision.allowed:
+            return JSONResponse(
+                {"detail": "rate limit exceeded"},
+                status_code=429,
+                headers={
+                    "Retry-After": str(max(1, int(decision.retry_after + 0.999))),
+                    "X-RateLimit-Limit": str(limiter.limit),
+                    "X-RateLimit-Remaining": str(decision.remaining),
+                },
+            )
     return await call_next(request)
 
 
