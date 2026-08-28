@@ -1,0 +1,71 @@
+name: Weekly Performance and Deployment Health
+
+on:
+  schedule:
+    - cron: "30 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  performance-and-soak:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run weekly performance regression gate
+        run: python scripts/weekly_performance_check.py --output artifacts/weekly-performance.json
+      - name: Start API for soak smoke test
+        run: |
+          REDIS_URL=redis://127.0.0.1:6379/0 uvicorn api.main:app --host 127.0.0.1 --port 8000 > /tmp/optimax-api.log 2>&1 &
+          echo $! > /tmp/optimax-api.pid
+          for attempt in $(seq 1 30); do
+            curl --fail --silent http://127.0.0.1:8000/api/v1/health && break
+            sleep 1
+          done
+      - name: Run checkpointed WebSocket soak smoke test
+        run: >-
+          python benchmarks/soak_test_websocket.py
+          --base-url http://127.0.0.1:8000
+          --duration-seconds 60
+          --checkpoint-seconds 20
+          --subscribers 5
+          --publish-interval 2
+          --pid $(cat /tmp/optimax-api.pid)
+          --output artifacts/weekly-soak-smoke.json
+      - name: Upload performance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-performance-${{ github.run_id }}
+          path: artifacts/
+          if-no-files-found: warn
+
+  deployment-health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check configured deployment health endpoint
+        if: ${{ vars.DEPLOYMENT_BASE_URL != '' }}
+        env:
+          DEPLOYMENT_BASE_URL: ${{ vars.DEPLOYMENT_BASE_URL }}
+        run: curl --fail --show-error --silent "$DEPLOYMENT_BASE_URL/api/v1/health"
+      - name: Explain deployment health configuration
+        if: ${{ vars.DEPLOYMENT_BASE_URL == '' }}
+        run: echo "DEPLOYMENT_BASE_URL is not configured; external deployment health check skipped."
