@@ -3,6 +3,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from api.routes.architecture import router as architecture_router
 from api.routes.assistant import router as assistant_router
 from api.routes.auth import router as auth_router
 from api.routes.decisions import router as decisions_router
@@ -47,6 +48,7 @@ app.include_router(decisions_router, prefix="/api/v1")
 app.include_router(experiments_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(assistant_router, prefix="/api/v1")
+app.include_router(architecture_router, prefix="/api/v1")
 app.include_router(scenarios_router, prefix="/api/v1")
 app.include_router(traffic_router, prefix="/api/v1")
 app.include_router(realtime_router, prefix="/api/v1")
