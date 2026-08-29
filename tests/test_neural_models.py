@@ -10,6 +10,7 @@ import pytest
 pytest.importorskip("torch")
 
 from src.ml.demand.neural_models import MLPDemandForecaster, TemporalDemandForecaster
+from src.ml.eta.neural_models import MLPETAForecaster, TemporalETAForecaster
 
 
 def test_mlp_learns_deterministic_tabular_signal():
@@ -32,6 +33,20 @@ def test_temporal_lstm_and_gru_predict_from_sequence_windows():
         assert len(predictions) == 3
         assert model.metadata()["model"] == cell
         assert model.loss_history[-1] < model.loss_history[0]
+
+
+def test_eta_wrappers_preserve_neural_contract():
+    features = np.arange(20, dtype=np.float32).reshape(10, 2)
+    target = features[:, 0] + features[:, 1]
+    model = MLPETAForecaster(hidden_sizes=(8,), epochs=10, random_state=3).fit(features, target)
+    assert len(model.predict(features[:2])) == 2
+    assert model.metadata()["target"] == "eta_minutes"
+
+    sequences = features.reshape(5, 2, 2)
+    sequence_target = target.reshape(5, 2)[:, -1]
+    temporal = TemporalETAForecaster(cell="gru", hidden_size=4, epochs=5, random_state=3).fit(sequences, sequence_target)
+    assert len(temporal.predict(sequences[:2])) == 2
+    assert temporal.metadata()["target"] == "eta_minutes"
 
 
 def test_neural_models_reject_invalid_shapes():
