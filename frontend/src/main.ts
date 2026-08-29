@@ -17,9 +17,11 @@ type TrafficEvent = {
 type TokenResponse = { access_token: string };
 
 type Phase = { id: string; label: string; state: 'active' | 'ready'; detail: string };
+type PhaseStatus = { phase: number; name: string; contract: string; persistence: string; status: string };
 
 const API_ORIGIN = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:8000';
 const API_URL = `${API_ORIGIN}/api/v1/simulation/run`;
+const ARCHITECTURE_URL = `${API_ORIGIN}/api/v1/architecture/status`;
 const TOKEN_URL = `${API_ORIGIN}/api/v1/auth/token`;
 const WS_URL = `${API_ORIGIN.replace(/^http/, 'ws')}/api/v1/ws/traffic`;
 const app = document.querySelector<HTMLDivElement>('#app');
@@ -50,7 +52,7 @@ app.innerHTML = `
 
     <section class="metric-grid" aria-label="Operational metrics"><article class="metric-card accent-mint"><span>Service level</span><strong id="service-level">98.4%</strong><small><i class="trend-up">↗ 4.2%</i> vs. baseline</small></article><article class="metric-card accent-blue"><span>Active dispatches</span><strong id="dispatches">24</strong><small>across 3 operating zones</small></article><article class="metric-card accent-yellow"><span>Decision latency</span><strong id="latency">142<small>ms</small></strong><small><i class="trend-up">↓ 18%</i> after batching</small></article><article class="metric-card accent-purple"><span>Evidence coverage</span><strong>100%</strong><small>DecisionRecords grounded</small></article></section>
 
-    <section id="pipeline" class="panel pipeline-panel"><div class="section-heading"><div><p class="panel-kicker">RESEARCH PIPELINE</p><h2>Every phase, one traceable loop.</h2></div><span class="live-label"><i></i> system aligned</span></div><div class="phase-track">${phases.map((phase, index) => `<div class="phase-step ${phase.state}"><span class="phase-number">${phase.id}</span><div><strong>${phase.label}</strong><small>${phase.detail}</small></div>${index < phases.length - 1 ? '<span class="phase-arrow">→</span>' : ''}</div>`).join('')}</div></section>
+    <section id="pipeline" class="panel pipeline-panel"><div class="section-heading"><div><p class="panel-kicker">RESEARCH PIPELINE</p><h2>Every phase, one traceable loop.</h2></div><span class="live-label"><i></i> system aligned</span></div><div class="phase-track">${phases.map((phase, index) => `<div class="phase-step ${phase.state}" data-phase="${phase.id}"><span class="phase-number">${phase.id}</span><div><strong>${phase.label}</strong><small>${phase.detail}</small></div>${index < phases.length - 1 ? '<span class="phase-arrow">→</span>' : ''}</div>`).join('')}</div></section>
 
     <section class="dashboard-grid">
       <article class="panel scenario-panel"><div class="section-heading"><div><p class="panel-kicker">SCENARIO CONTROL</p><h2>Reproducible execution</h2></div><span id="request-state" class="request-state">Idle</span></div><p>Run the same operational state through forecasting, constrained routing, policy evaluation, and decision evidence. Every output remains attributable to its scenario and seed.</p><div class="scenario-list"><span><b>Operational state</b><small>3 zones · 4 vehicles · 18 orders</small></span><span><b>Prediction bundle</b><small>XGBoost / feature v2.1</small></span><span><b>Decision lineage</b><small>PostgreSQL / trace ready</small></span></div></article>
@@ -65,6 +67,22 @@ app.innerHTML = `
 
 const byId = <T extends HTMLElement>(id: string): T | null => document.querySelector<T>(`#${id}`);
 const runButton = byId<HTMLButtonElement>('run');
+const loadArchitectureStatus = async (): Promise<void> => {
+  try {
+    const response = await fetch(ARCHITECTURE_URL);
+    if (!response.ok) return;
+    const statuses = (await response.json()) as PhaseStatus[];
+    statuses.forEach((status) => {
+      const step = document.querySelector<HTMLElement>(`[data-phase="${String(status.phase).padStart(2, '0')}"]`);
+      if (!step) return;
+      step.title = `${status.contract} · persisted in ${status.persistence}`;
+      step.classList.toggle('active', status.status === 'active');
+      step.classList.toggle('ready', status.status !== 'active');
+    });
+  } catch {
+    // The visual shell remains useful while the API is unavailable.
+  }
+};
 const output = byId<HTMLElement>('output');
 const requestState = byId<HTMLElement>('request-state');
 const orders = byId<HTMLElement>('dispatches');
@@ -95,4 +113,4 @@ const connectTrafficStream = async (): Promise<void> => { try { const token = aw
 const runScenario = async (): Promise<void> => { if (!runButton || !output) return; runButton.disabled = true; setState('Running'); output.textContent = 'Requesting simulation metrics…'; try { const response = await fetch(API_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ seed: 42, duration_hours: 2, zones: 3, vehicles: 4, orders_per_hour: 3 }) }); if (!response.ok) throw new Error(`API returned HTTP ${response.status}`); const data = (await response.json()) as SimulationResponse; renderMetrics(data.metrics); output.textContent = JSON.stringify(data, null, 2); setState('Complete'); } catch (error) { const message = error instanceof Error ? error.message : 'Unknown request failure'; output.textContent = `${message}\n\nStart FastAPI on localhost:8000 and run again.`; setState('Unavailable'); } finally { runButton.disabled = false; } };
 
 const savedTheme = localStorage.getItem('optima-theme'); if (savedTheme === 'light') document.documentElement.dataset.theme = 'light'; themeToggle?.addEventListener('click', () => { const light = document.documentElement.dataset.theme === 'light'; document.documentElement.dataset.theme = light ? 'dark' : 'light'; localStorage.setItem('optima-theme', light ? 'dark' : 'light'); if (themeToggle) themeToggle.textContent = light ? '☼' : '☾'; });
-runButton?.addEventListener('click', () => void runScenario()); void connectTrafficStream(); window.addEventListener('beforeunload', () => { if (reconnectTimer !== undefined) window.clearTimeout(reconnectTimer); });
+runButton?.addEventListener('click', () => void runScenario()); void loadArchitectureStatus(); void connectTrafficStream(); window.addEventListener('beforeunload', () => { if (reconnectTimer !== undefined) window.clearTimeout(reconnectTimer); });
