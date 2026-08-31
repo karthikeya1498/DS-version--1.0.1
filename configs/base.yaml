@@ -1,0 +1,24 @@
+project:
+  name: optima-x
+  version: 0.1.0
+simulation:
+  seed: 42
+  zones: 20
+  vehicles: 100
+  orders_per_hour: 1000
+forecast:
+  horizon_minutes: 60
+  model: xgboost
+routing:
+  shortest_path: astar
+  local_search: two_opt
+optimization:
+  timeout_seconds: 2
+  alpha_distance: 1.0
+  beta_lateness: 5.0
+  gamma_fuel: 1.5
+  delta_unserved: 20.0
+  epsilon_vehicle_activation: 2.0
+rl:
+  algorithm: ppo
+  episodes: 1000
