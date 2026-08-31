@@ -1,3 +1,6 @@
-"""Fuel module placeholder for the OPTIMA-X implementation roadmap."""
+"""Fuel consumption and emission objective calculations."""
+from __future__ import annotations
 
-# TODO: Implement this module in a subsequent project step.
+
+def calculate_fuel_cost(distance_km: float, fuel_rate_per_km: float = 1.5) -> float:
+    return distance_km * fuel_rate_per_km

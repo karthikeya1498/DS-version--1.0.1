@@ -1,28 +1,37 @@
-"""Phase 3: prediction-aware, constraint-safe optimization orchestration."""
+"""Phase 3: prediction-aware, capacity-constrained multi-order optimization orchestration."""
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
-from heapq import heappop, heappush
-from math import exp
+from datetime import datetime, timezone
+import math
 from random import Random
 from time import perf_counter
 
 from src.common.contracts import OptimizationResult, RoutePlan
+from src.dsa.graphs.astar import shortest_path as astar_path
+from src.dsa.graphs.dijkstra import shortest_path as dijkstra_path
+from src.dsa.graphs.graph import RoadGraph
+from src.optimization.assignment.order_assignment import cluster_orders_by_capacity
+from src.optimization.constraints.time_windows import calculate_schedule_lateness
+from src.optimization.objectives.cost import ObjectiveConfig
 from src.optimization.routing.genetic_algorithm import optimize as genetic_optimize
 from src.optimization.routing.graph_dispatch import GraphDispatchRouter
+from src.optimization.routing.simulated_annealing import SimulatedAnnealingSolver
+from src.optimization.routing.tabu_search import TabuSearchSolver
 from src.optimization.routing.three_opt import improve as three_opt
 from src.optimization.routing.two_opt import improve as two_opt
-from src.simulation.models import Order, OrderStatus, Vehicle, VehicleStatus
+from src.optimization.solver.ortools_solver import ORToolsRoutingSolver
+from src.simulation.models import Location, Order, OrderStatus, Vehicle, VehicleStatus
 
 
 @dataclass(frozen=True)
 class ObjectiveWeights:
     distance: float = 1.0
     fuel: float = 1.5
-    lateness: float = 10.0
-    unserved: float = 100.0
-    vehicle_usage: float = 5.0
+    lateness: float = 5.0
+    unserved: float = 50.0
+    vehicle_usage: float = 10.0
 
 
 @dataclass(frozen=True)
@@ -65,48 +74,96 @@ class OptimizationPlan:
 class Objective:
     """Single, shared scalar objective used by every Phase 3 solver."""
 
-    def __init__(self, weights: ObjectiveWeights = ObjectiveWeights(), fuel_rate: float = 1.0) -> None:
-        self.weights, self.fuel_rate = weights, fuel_rate
+    def __init__(
+        self,
+        weights: ObjectiveWeights | ObjectiveConfig = ObjectiveWeights(),
+        fuel_rate: float = 1.5,
+    ) -> None:
+        if isinstance(weights, ObjectiveConfig):
+            self.weights = ObjectiveWeights(
+                distance=weights.distance_cost_per_km,
+                fuel=weights.fuel_cost_per_km,
+                lateness=weights.lateness_cost_per_minute,
+                unserved=weights.unserved_order_penalty,
+                vehicle_usage=weights.vehicle_activation_cost,
+            )
+        else:
+            self.weights = weights
+        self.fuel_rate = fuel_rate
 
-    def score(self, *, distance_km: float, lateness_minutes: float = 0.0,
-              unserved_orders: int = 0, activated_vehicles: int = 0) -> float:
+    def score(
+        self,
+        *,
+        distance_km: float,
+        lateness_minutes: float = 0.0,
+        unserved_orders: int = 0,
+        activated_vehicles: int = 0,
+        expected_late_risk: float = 0.0,
+    ) -> float:
         fuel = distance_km * self.fuel_rate
-        return (self.weights.distance * distance_km + self.weights.fuel * fuel
-                + self.weights.lateness * lateness_minutes
-                + self.weights.unserved * unserved_orders
-                + self.weights.vehicle_usage * activated_vehicles)
+        return (
+            self.weights.distance * distance_km
+            + self.weights.fuel * fuel
+            + self.weights.lateness * lateness_minutes
+            + self.weights.unserved * unserved_orders
+            + self.weights.vehicle_usage * activated_vehicles
+            + 20.0 * expected_late_risk
+        )
 
 
 class ConstraintEngine:
-    """Hard constraints are rejection rules; soft lateness is measured, not hidden."""
+    """Hard constraints are rejection rules; soft lateness is measured and penalized."""
 
-    def check_order_vehicle(self, order: Order, vehicle: Vehicle, timestamp=None) -> ConstraintReport:
+    def check_order_vehicle(
+        self,
+        order: Order,
+        vehicle: Vehicle,
+        timestamp: datetime | None = None,
+    ) -> ConstraintReport:
         timestamp = timestamp or order.created_at
         violations = []
-        if vehicle.status != VehicleStatus.AVAILABLE: violations.append(f"vehicle_unavailable:{vehicle.vehicle_id}")
-        if vehicle.load_units + order.demand_units > vehicle.capacity_units: violations.append(f"capacity_exceeded:{order.order_id}")
-        if not vehicle.available_from <= timestamp <= vehicle.available_until: violations.append(f"vehicle_shift:{vehicle.vehicle_id}")
+        if vehicle.status != VehicleStatus.AVAILABLE:
+            violations.append(f"vehicle_unavailable:{vehicle.vehicle_id}")
+        if vehicle.load_units + order.demand_units > vehicle.capacity_units:
+            violations.append(f"capacity_exceeded:{order.order_id}")
+        if not (vehicle.available_from <= timestamp <= vehicle.available_until):
+            violations.append(f"vehicle_shift:{vehicle.vehicle_id}")
         return ConstraintReport(not violations, tuple(violations))
 
-    def check_route(self, route: RoutePlan, orders: Iterable[Order], vehicles: Iterable[Vehicle]) -> ConstraintReport:
+    def check_route(
+        self,
+        route: RoutePlan,
+        orders: Iterable[Order],
+        vehicles: Iterable[Vehicle],
+    ) -> ConstraintReport:
         violations = list(route.violations)
-        order_map, vehicle_map = {o.order_id: o for o in orders}, {v.vehicle_id: v for v in vehicles}
+        order_map = {o.order_id: o for o in orders}
+        vehicle_map = {v.vehicle_id: v for v in vehicles}
         vehicle = vehicle_map.get(route.vehicle_id)
-        if vehicle is None: violations.append(f"unknown_vehicle:{route.vehicle_id}")
+        if vehicle is None:
+            violations.append(f"unknown_vehicle:{route.vehicle_id}")
         else:
             load = sum(order_map[i].demand_units for i in route.order_ids if i in order_map)
-            if load > vehicle.capacity_units: violations.append(f"capacity_exceeded:{route.vehicle_id}")
+            if load > vehicle.capacity_units:
+                violations.append(f"capacity_exceeded:{route.vehicle_id}")
         for order_id in route.order_ids:
-            if order_id not in order_map: violations.append(f"unknown_order:{order_id}")
+            if order_id not in order_map:
+                violations.append(f"unknown_order:{order_id}")
         return ConstraintReport(not violations, tuple(violations))
 
 
-def select_capacity_subset(items: list[tuple[str, int, float]], capacity: int) -> tuple[str, ...]:
+def select_capacity_subset(
+    items: list[tuple[str, int, float]],
+    capacity: int,
+) -> tuple[str, ...]:
     """0/1 knapsack DP for selecting highest-value orders within vehicle capacity."""
-    if capacity < 0: raise ValueError("capacity must be non-negative")
-    dp = [0.0] * (capacity + 1); chosen: list[tuple[str, int, int]] = []
+    if capacity < 0:
+        raise ValueError("capacity must be non-negative")
+    dp = [0.0] * (capacity + 1)
+    chosen: list[tuple[str, int, int]] = []
     for index, (item_id, weight, value) in enumerate(items):
-        if weight <= 0: raise ValueError("item weight must be positive")
+        if weight <= 0:
+            raise ValueError("item weight must be positive")
         for cap in range(capacity, weight - 1, -1):
             candidate = dp[cap - weight] + value
             dp[cap] = max(dp[cap], candidate)
@@ -115,7 +172,8 @@ def select_capacity_subset(items: list[tuple[str, int, float]], capacity: int) -
         item_id, weight, value = items[index]
         previous = dp[cap - weight] + value if cap >= weight else -1.0
         if cap >= weight and abs(dp[cap] - previous) < 1e-9:
-            chosen.append((item_id, weight, index)); cap -= weight
+            chosen.append((item_id, weight, index))
+            cap -= weight
     return tuple(item_id for item_id, _, _ in reversed(chosen))
 
 
@@ -124,84 +182,197 @@ def minimum_feasible(low: int, high: int, predicate: Callable[[int], bool]) -> i
     answer = None
     while low <= high:
         mid = (low + high) // 2
-        if predicate(mid): answer, high = mid, mid - 1
-        else: low = mid + 1
+        if predicate(mid):
+            answer, high = mid, mid - 1
+        else:
+            low = mid + 1
     return answer
 
 
-class GreedyAssignmentSolver:
-    """Priority-queue assignment baseline; deterministic under equal scores."""
-
-    def __init__(self, router: GraphDispatchRouter, objective: Objective | None = None,
-                 constraints: ConstraintEngine | None = None) -> None:
-        self.router, self.objective = router, objective or Objective(); self.constraints = constraints or ConstraintEngine()
-
-    def solve(self, orders: list[Order], vehicles: list[Vehicle], predictions: dict[str, Prediction] | None = None,
-              strategy: str = "greedy") -> OptimizationResult:
-        started = perf_counter(); predictions = predictions or {}; heap = []
-        for order in orders:
-            prediction = predictions.get(order.order_id, Prediction(order.demand_units))
-            heappush(heap, (-order.priority, prediction.late_risk, order.created_at.timestamp(), order.order_id, order))
-        routes, unserved, used = [], 0, set()
-        while heap:
-            _, _, _, _, order = heappop(heap); candidates: list[DecisionCandidate] = []
-            for vehicle in vehicles:
-                report = self.constraints.check_order_vehicle(order, vehicle)
-                if not report.feasible: continue
-                route = self.router.route(order, [vehicle])
-                if route is None: continue
-                prediction = predictions.get(order.order_id, Prediction(order.demand_units))
-                score = route.travel_cost + (prediction.late_risk + prediction.uncertainty) * self.objective.weights.lateness
-                candidates.append(DecisionCandidate(order, vehicle, score, route.travel_cost, prediction.eta_minutes))
-                vehicle.status = VehicleStatus.AVAILABLE
-                vehicle.load_units -= order.demand_units
-                order.status, order.assigned_vehicle_id = OrderStatus.PENDING, None
-            if not candidates: unserved += 1; continue
-            chosen = min(candidates, key=lambda c: (c.score, c.vehicle.vehicle_id)); route = self.router.route(order, [chosen.vehicle])
-            assert route is not None
-            routes.append(RoutePlan(route.vehicle_id, (order.order_id,), route.path, route.travel_cost, chosen.predicted_lateness))
-            used.add(route.vehicle_id)
-        distance = sum(route.distance_km for route in routes); lateness = sum(route.lateness_minutes for route in routes)
-        result = OptimizationResult(tuple(routes), self.objective.score(distance_km=distance, lateness_minutes=lateness, unserved_orders=unserved, activated_vehicles=len(used)), len(routes), unserved, (perf_counter() - started) * 1000, strategy, {"distance_km": distance, "activated_vehicles": float(len(used)), "lateness_minutes": lateness})
-        return result
-
-
-class SimulatedAnnealingSolver:
-    """Route-order local search with deterministic seeded acceptance schedule."""
-
-    def __init__(self, seed: int = 42, initial_temperature: float = 10.0, cooling: float = .95, iterations: int = 250) -> None:
-        self.random = Random(seed); self.initial_temperature, self.cooling, self.iterations = initial_temperature, cooling, iterations
-
-    def optimize(self, route: list[str], cost: Callable[[list[str]], float]) -> tuple[list[str], float]:
-        current, current_cost, best, best_cost = list(route), cost(route), list(route), cost(route); temperature = self.initial_temperature
-        for _ in range(self.iterations):
-            if len(current) < 4: break
-            left, right = sorted(self.random.sample(range(1, len(current)), 2)); candidate = current[:left] + current[left:right][::-1] + current[right:]; value = cost(candidate); delta = value - current_cost
-            if delta <= 0 or self.random.random() < exp(-delta / max(temperature, 1e-9)): current, current_cost = candidate, value
-            if current_cost < best_cost: best, best_cost = list(current), current_cost
-            temperature *= self.cooling
-        return best, best_cost
-
-
-def optimize_sequence(sequence: list[str], cost: Callable[[list[str]], float], method: str = 'greedy_2opt', seed: int = 42) -> tuple[list[str], float]:
+def optimize_sequence(
+    sequence: list[str],
+    cost: Callable[[list[str]], float],
+    method: str = "greedy_2opt",
+    seed: int = 42,
+) -> tuple[list[str], float]:
     """Apply a comparable route-order improvement operator to one vehicle sequence."""
-    if method == 'greedy': return list(sequence), cost(sequence)
-    if method == 'greedy_2opt': return two_opt(sequence, cost)
-    if method == 'greedy_3opt': return three_opt(sequence, cost)
-    if method == 'simulated_annealing': return SimulatedAnnealingSolver(seed=seed).optimize(sequence, cost)
-    if method == 'genetic': return genetic_optimize(sequence, cost, seed=seed)
-    raise ValueError(f'unsupported route method: {method}')
+    if method == "greedy":
+        return list(sequence), cost(sequence)
+    if method in {"greedy_2opt", "2opt"}:
+        return two_opt(sequence, cost)
+    if method in {"greedy_3opt", "3opt"}:
+        return three_opt(sequence, cost)
+    if method == "simulated_annealing":
+        return SimulatedAnnealingSolver(seed=seed).optimize(sequence, cost)
+    if method == "tabu_search":
+        return TabuSearchSolver().optimize(sequence, cost)
+    if method == "genetic":
+        return genetic_optimize(sequence, cost, seed=seed)
+    if method == "ortools":
+        # Calculate full distance matrix for sequence
+        n = len(sequence)
+        dist_matrix = [[0.0] * n for _ in range(n)]
+        for i in range(n):
+            for j in range(n):
+                if i != j:
+                    dist_matrix[i][j] = cost([sequence[i], sequence[j]])
+        return ORToolsRoutingSolver().solve_tsp(sequence, dist_matrix)
+    return two_opt(sequence, cost)
 
 
 class Phase3Solver:
-    """Unified solver interface used for comparable algorithm experiments."""
+    """
+    Unified Capacity-Constrained Vehicle Routing Problem (CVRP) solver.
+    Orchestrates multi-order capacity bundling, multi-stop tour sequencing,
+    and objective optimization.
+    """
 
-    def __init__(self, router: GraphDispatchRouter, objective: Objective | None = None) -> None:
-        self.router, self.objective = router, objective or Objective(); self.greedy = GreedyAssignmentSolver(router, self.objective)
+    def __init__(
+        self,
+        router: GraphDispatchRouter,
+        objective: Objective | None = None,
+    ) -> None:
+        self.router = router
+        self.graph = router.graph
+        self.objective = objective or Objective()
+        self.constraints = ConstraintEngine()
 
-    def solve(self, orders: list[Order], vehicles: list[Vehicle], predictions: dict[str, Prediction] | None = None, method: str = "greedy") -> OptimizationResult:
-        if method not in {"greedy", "greedy_2opt", "greedy_3opt", "simulated_annealing", "genetic"}: raise ValueError(f"unsupported Phase 3 method: {method}")
-        return self.greedy.solve(orders, vehicles, predictions, method)
+    def _shortest_path_cost(self, u: str, v: str) -> tuple[float, tuple[str, ...]]:
+        if u == v:
+            return 0.0, (u,)
+        res = astar_path(self.graph, u, v)
+        if res is not None:
+            return res.cost, res.path
+        # Fallback Euclidean
+        node_u, node_v = self.graph.nodes.get(u), self.graph.nodes.get(v)
+        if node_u and node_v:
+            d = math.sqrt((node_u.latitude - node_v.latitude) ** 2 + (node_u.longitude - node_v.longitude) ** 2) * 111.0
+            return d, (u, v)
+        return 10.0, (u, v)
 
-    def optimize_sequence(self, sequence: list[str], cost: Callable[[list[str]], float], method: str = 'greedy_2opt', seed: int = 42) -> tuple[list[str], float]:
+    def solve(
+        self,
+        orders: list[Order],
+        vehicles: list[Vehicle],
+        predictions: dict[str, Prediction] | None = None,
+        method: str = "greedy_2opt",
+    ) -> OptimizationResult:
+        started = perf_counter()
+        predictions = predictions or {}
+
+        if not orders or not vehicles:
+            return OptimizationResult(
+                (),
+                self.objective.score(distance_km=0, lateness_minutes=0, unserved_orders=len(orders)),
+                0,
+                len(orders),
+                (perf_counter() - started) * 1000,
+                method,
+                {"distance_km": 0.0, "activated_vehicles": 0.0, "lateness_minutes": 0.0},
+            )
+
+        # 1. Capacity-Aware Multi-Order Clustering (Bin-Packing)
+        bundles, unserved_orders_list = cluster_orders_by_capacity(orders, vehicles)
+
+        route_plans: list[RoutePlan] = []
+        total_distance = 0.0
+        total_lateness = 0.0
+        activated_vehicles = set()
+        vehicle_map = {v.vehicle_id: v for v in vehicles}
+
+        for v_id, bundle_orders in bundles.items():
+            if not bundle_orders:
+                continue
+
+            vehicle = vehicle_map[v_id]
+            activated_vehicles.add(v_id)
+            v_start_node = vehicle.current_location.node_id
+
+            order_dest_nodes = [o.destination.node_id for o in bundle_orders]
+            stop_nodes = [v_start_node] + order_dest_nodes
+
+            # Tour cost evaluation closure
+            def tour_cost(nodes: list[str]) -> float:
+                cost = 0.0
+                for u, v in zip(nodes[:-1], nodes[1:]):
+                    d, _ = self._shortest_path_cost(u, v)
+                    cost += d
+                return cost
+
+            # 2. Multi-Stop Sequence Optimization
+            optimized_nodes, tour_dist = optimize_sequence(stop_nodes, tour_cost, method=method)
+
+            # Map optimized stop nodes back to order sequence
+            node_to_order = {o.destination.node_id: o for o in bundle_orders}
+            ordered_orders = [
+                node_to_order[n_id] for n_id in optimized_nodes[1:] if n_id in node_to_order
+            ]
+            # In case of duplicate destination nodes, include any missing orders from bundle
+            for o in bundle_orders:
+                if o not in ordered_orders:
+                    ordered_orders.append(o)
+
+            # 3. Assemble full path across stops
+            full_path: list[str] = [v_start_node]
+            segment_times_min: list[float] = []
+
+            for u, v in zip(optimized_nodes[:-1], optimized_nodes[1:]):
+                d, path = self._shortest_path_cost(u, v)
+                full_path.extend(path[1:])
+                # Speed approx 40 km/h -> time = (d / 40) * 60 min
+                segment_times_min.append(max(1.0, (d / 40.0) * 60.0))
+
+            # 4. Schedule Lateness & Arrival Simulation
+            start_time = bundle_orders[0].created_at
+            lateness_min, _, _ = calculate_schedule_lateness(
+                ordered_orders, start_time, segment_times_min
+            )
+
+            total_distance += tour_dist
+            total_lateness += lateness_min
+
+            ordered_order_ids = tuple(o.order_id for o in ordered_orders)
+            route_plans.append(
+                RoutePlan(
+                    vehicle_id=v_id,
+                    order_ids=ordered_order_ids,
+                    node_path=tuple(full_path),
+                    distance_km=tour_dist,
+                    lateness_minutes=lateness_min,
+                )
+            )
+
+        unserved_count = len(unserved_orders_list)
+        served_count = len(orders) - unserved_count
+
+        total_obj = self.objective.score(
+            distance_km=total_distance,
+            lateness_minutes=total_lateness,
+            unserved_orders=unserved_count,
+            activated_vehicles=len(activated_vehicles),
+        )
+
+        runtime_ms = (perf_counter() - started) * 1000
+
+        return OptimizationResult(
+            routes=tuple(route_plans),
+            total_cost=total_obj,
+            served_orders=served_count,
+            unserved_orders=unserved_count,
+            runtime_ms=runtime_ms,
+            strategy=method,
+            diagnostics={
+                "distance_km": total_distance,
+                "activated_vehicles": float(len(activated_vehicles)),
+                "lateness_minutes": total_lateness,
+            },
+        )
+
+    def optimize_sequence(
+        self,
+        sequence: list[str],
+        cost: Callable[[list[str]], float],
+        method: str = "greedy_2opt",
+        seed: int = 42,
+    ) -> tuple[list[str], float]:
         return optimize_sequence(sequence, cost, method, seed)
