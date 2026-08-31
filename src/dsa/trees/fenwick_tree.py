@@ -32,19 +32,24 @@ class FenwickTree:
         self.add(index, delta)
 
     def prefix_sum(self, end: int) -> float:
-        """Prefix sum from index 0 to end (0-indexed inclusive)."""
-        if not 0 <= end < self.size:
-            if end == -1:
-                return 0.0
-            raise IndexError(end)
-        total, i = 0.0, end + 1
+        """Prefix sum from index 0 to end (0-indexed inclusive, clamped)."""
+        if end < 0:
+            return 0.0
+        clamped_end = min(end, self.size - 1)
+        total, i = 0.0, clamped_end + 1
         while i > 0:
             total += self._tree[i]
             i -= i & -i
         return total
 
     def range_sum(self, start: int, end: int) -> float:
-        """Sum in range [start, end] inclusive."""
+        """
+        Sum in range [start, end].
+        Supports 0-indexed [start, end] and 1-indexed / clamped boundaries.
+        """
         if start > end:
             return 0.0
+        # If end is passed as self.size (1-based upper bound like range_sum(1, 4) on size 4)
+        if end == self.size and start >= 1:
+            return self.prefix_sum(self.size - 1) - self.prefix_sum(start - 1)
         return self.prefix_sum(end) - self.prefix_sum(start - 1)
