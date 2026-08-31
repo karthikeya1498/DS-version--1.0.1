@@ -1,9 +1,9 @@
 """Unit tests for demand forecasting models: XGBoost, MLP, LSTM, and training pipeline."""
+
 import numpy as np
 import pandas as pd
-import pytest
 
-from src.ml.demand.lstm_model import GRUForecaster, LSTMForecaster, TemporalDataset
+from src.ml.demand.lstm_model import LSTMForecaster
 from src.ml.demand.mlp_model import MLPForecaster
 from src.ml.demand.train import train_demand_models
 from src.ml.demand.xgboost_model import DemandForecaster
@@ -61,11 +61,13 @@ def test_lstm_temporal_forecaster():
 
 def test_train_demand_models_pipeline():
     base_time = pd.date_range("2026-01-01", periods=100, freq="h", tz="UTC")
-    df = pd.DataFrame({
-        "timestamp": base_time,
-        "zone": "zone_A",
-        "demand": [float(10 + (i % 24) + (i % 5)) for i in range(100)],
-    })
+    df = pd.DataFrame(
+        {
+            "timestamp": base_time,
+            "zone": "zone_A",
+            "demand": [float(10 + (i % 24) + (i % 5)) for i in range(100)],
+        }
+    )
 
     result = train_demand_models(df)
     assert "models" in result

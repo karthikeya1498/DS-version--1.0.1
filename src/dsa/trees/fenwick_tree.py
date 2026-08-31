@@ -1,4 +1,5 @@
 """Fenwick tree (Binary Indexed Tree) supporting point updates and prefix sums in O(log n)."""
+
 from __future__ import annotations
 
 

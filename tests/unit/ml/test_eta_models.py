@@ -1,11 +1,9 @@
 """Unit tests for ETA travel time models and pipeline."""
+
 import numpy as np
-import pytest
 
 from src.features.eta_features import build_eta_feature_row
-from src.ml.eta.mlp_model import EtaMLPForecaster
 from src.ml.eta.train import train_eta_models
-from src.ml.eta.xgboost_model import EtaForecaster
 
 
 def test_eta_xgboost_and_mlp():
@@ -29,6 +27,8 @@ def test_eta_xgboost_and_mlp():
 
     # Ensure single-sample predictions are strictly positive
     xgb_m = res["models"]["xgboost"]
-    single_pred = xgb_m.predict(np.array([[5.0, 7.5, 1.0, 0.0, 1.0, 1.0, 7.5, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0]]))
+    single_pred = xgb_m.predict(
+        np.array([[5.0, 7.5, 1.0, 0.0, 1.0, 1.0, 7.5, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0]])
+    )
     assert len(single_pred) == 1
     assert single_pred[0] > 0.0

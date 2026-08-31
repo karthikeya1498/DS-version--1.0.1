@@ -11,8 +11,14 @@ from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 DATASETS = {
-    "bike_hour": ("https://archive.ics.uci.edu/static/public/275/bike+sharing+dataset.zip", "data/raw/mobility/bike_sharing.zip"),
-    "logistics_daily": ("https://archive.ics.uci.edu/static/public/409/daily+demand+forecasting+orders.zip", "data/raw/logistics/daily_demand.zip"),
+    "bike_hour": (
+        "https://archive.ics.uci.edu/static/public/275/bike+sharing+dataset.zip",
+        "data/raw/mobility/bike_sharing.zip",
+    ),
+    "logistics_daily": (
+        "https://archive.ics.uci.edu/static/public/409/daily+demand+forecasting+orders.zip",
+        "data/raw/logistics/daily_demand.zip",
+    ),
 }
 _ALLOWED_HOSTS = {urlparse(url).hostname for url, _ in DATASETS.values()}
 _MAX_DOWNLOAD_BYTES = 2_000_000_000
@@ -28,7 +34,9 @@ def download(name: str, root: str | Path = ".") -> Path:
         raise ValueError(f"unsupported dataset URL: {url}")
     target = Path(root) / relative
     target.parent.mkdir(parents=True, exist_ok=True)
-    with urlopen(Request(url, headers={"User-Agent": "OPTIMA-X research downloader/1.0"}), timeout=120) as response:  # nosec B310
+    with urlopen(
+        Request(url, headers={"User-Agent": "OPTIMA-X research downloader/1.0"}), timeout=120
+    ) as response:  # nosec B310
         content_length = int(response.headers.get("Content-Length", 0))
         if content_length > _MAX_DOWNLOAD_BYTES:
             raise ValueError(f"dataset exceeds {_MAX_DOWNLOAD_BYTES} bytes")

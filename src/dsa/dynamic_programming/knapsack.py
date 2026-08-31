@@ -1,18 +1,21 @@
 """0/1 and Unbounded Knapsack Dynamic Programming algorithms."""
+
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 
-def knapsack(weights: Sequence[int], values: Sequence[float], capacity: int) -> tuple[float, list[int]]:
+def knapsack(
+    weights: Sequence[int], values: Sequence[float], capacity: int
+) -> tuple[float, list[int]]:
     """
     Solve the 0/1 Knapsack Problem.
-    
+
     Args:
         weights: Integer weights of items.
         values: Values of items.
         capacity: Maximum integer capacity.
-        
+
     Returns:
         (max_value, list_of_selected_indices)
     """
@@ -50,7 +53,9 @@ def knapsack(weights: Sequence[int], values: Sequence[float], capacity: int) -> 
     return dp[n][capacity], chosen_indices
 
 
-def unbounded_knapsack(weights: Sequence[int], values: Sequence[float], capacity: int) -> tuple[float, list[int]]:
+def unbounded_knapsack(
+    weights: Sequence[int], values: Sequence[float], capacity: int
+) -> tuple[float, list[int]]:
     """
     Solve the Unbounded Knapsack Problem (items can be picked multiple times).
     """

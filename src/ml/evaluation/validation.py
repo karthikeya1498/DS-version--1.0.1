@@ -1,7 +1,8 @@
 """Time-series validation, bootstrap confidence intervals, and error slice analysis."""
+
 from __future__ import annotations
 
-from typing import Any, Callable, Sequence
+from collections.abc import Callable, Sequence
 
 import numpy as np
 import pandas as pd
@@ -104,11 +105,13 @@ def analyze_error_slices(
     for slice_val, group in df.groupby(slice_col):
         y_t = group[y_true_col].tolist()
         y_p = group[y_pred_col].tolist()
-        records.append({
-            slice_col: slice_val,
-            "sample_count": len(group),
-            "mae": mae(y_t, y_p),
-            "rmse": rmse(y_t, y_p),
-            "mean_bias": float(np.mean(np.asarray(y_p) - np.asarray(y_t))),
-        })
+        records.append(
+            {
+                slice_col: slice_val,
+                "sample_count": len(group),
+                "mae": mae(y_t, y_p),
+                "rmse": rmse(y_t, y_p),
+                "mean_bias": float(np.mean(np.asarray(y_p) - np.asarray(y_t))),
+            }
+        )
     return pd.DataFrame(records)

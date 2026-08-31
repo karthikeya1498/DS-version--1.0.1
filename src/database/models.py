@@ -1,10 +1,11 @@
 """SQLAlchemy ORM models and dataclass persistence contracts."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, JSON, String, Text
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -52,7 +53,7 @@ class SimulationRunModel(Base):
     unserved_orders = Column(Integer, nullable=False)
     total_distance_km = Column(Float, nullable=False)
     total_cost = Column(Float, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
 
 class OptimizationPlanModel(Base):
@@ -66,7 +67,7 @@ class OptimizationPlanModel(Base):
     runtime_ms = Column(Float, nullable=False)
     routes_json = Column(JSON, nullable=True)
     diagnostics_json = Column(JSON, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
 
 class DecisionTraceModel(Base):
@@ -78,7 +79,7 @@ class DecisionTraceModel(Base):
     feasible = Column(Boolean, nullable=False, default=True)
     objective_cost = Column(Float, nullable=False, default=0.0)
     explanation = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True)

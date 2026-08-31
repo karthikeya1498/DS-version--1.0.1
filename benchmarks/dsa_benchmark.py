@@ -1,4 +1,5 @@
 """Benchmark suite evaluating Core Data Structures & Algorithms performance."""
+
 from __future__ import annotations
 
 import random
@@ -15,7 +16,9 @@ from src.dsa.graphs.graph import RoadGraph
 from src.dsa.graphs.node import Node
 
 
-def benchmark_segment_tree_vs_linear(n_elements: int = 10000, n_queries: int = 1000) -> dict[str, float]:
+def benchmark_segment_tree_vs_linear(
+    n_elements: int = 10000, n_queries: int = 1000
+) -> dict[str, float]:
     data = [random.uniform(10.0, 60.0) for _ in range(n_elements)]
     st = TrafficSpeedRangeQuery(data, aggregation="min")
 
@@ -50,7 +53,9 @@ def benchmark_fenwick_vs_linear(n_elements: int = 10000, n_updates: int = 1000) 
     bit = CumulativeDemandMonitor(n_elements)
     linear_arr = [0.0] * n_elements
 
-    updates = [(random.randint(0, n_elements - 1), random.uniform(1.0, 10.0)) for _ in range(n_updates)]
+    updates = [
+        (random.randint(0, n_elements - 1), random.uniform(1.0, 10.0)) for _ in range(n_updates)
+    ]
 
     # Fenwick Tree O(log N)
     start_t = perf_counter()
@@ -86,12 +91,12 @@ def benchmark_astar_vs_dijkstra(grid_size: int = 20) -> dict[str, Any]:
         for c in range(grid_size):
             u = f"n_{r}_{c}"
             if r + 1 < grid_size:
-                graph.add_edge(Edge(u, f"n_{r+1}_{c}", 1.0), bidirectional=True)
+                graph.add_edge(Edge(u, f"n_{r + 1}_{c}", 1.0), bidirectional=True)
             if c + 1 < grid_size:
-                graph.add_edge(Edge(u, f"n_{r}_{c+1}", 1.0), bidirectional=True)
+                graph.add_edge(Edge(u, f"n_{r}_{c + 1}", 1.0), bidirectional=True)
 
     src = "n_0_0"
-    dst = f"n_{grid_size-1}_{grid_size-1}"
+    dst = f"n_{grid_size - 1}_{grid_size - 1}"
 
     start_t = perf_counter()
     dijk_res = dijkstra_path(graph, src, dst)
@@ -114,9 +119,13 @@ if __name__ == "__main__":
     print("=" * 60)
     print("  OPTIMA-X: DSA PERFORMANCE BENCHMARK  ")
     print("=" * 60)
-    print(pd.DataFrame([
-        benchmark_segment_tree_vs_linear(),
-        benchmark_fenwick_vs_linear(),
-    ]).to_string(index=False))
+    print(
+        pd.DataFrame(
+            [
+                benchmark_segment_tree_vs_linear(),
+                benchmark_fenwick_vs_linear(),
+            ]
+        ).to_string(index=False)
+    )
     print("\nA* vs Dijkstra on 20x20 Grid:")
     print(pd.DataFrame([benchmark_astar_vs_dijkstra(20)]).to_string(index=False))

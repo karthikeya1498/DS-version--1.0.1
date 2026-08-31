@@ -1,5 +1,4 @@
 """Unit tests for Grounded Decision Assistant and Live Tool Execution."""
-import pytest
 
 from src.llm.agent import DecisionAssistant
 from src.llm.schemas import ToolRequest

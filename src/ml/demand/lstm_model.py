@@ -1,8 +1,9 @@
 """Temporal Sequence Dataset, LSTM and GRU Recurrent Forecasters."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -18,6 +19,7 @@ def tanh(x: np.ndarray) -> np.ndarray:
 @dataclass(frozen=True)
 class TemporalDataset:
     """Sliding-window time-series dataset for sequence-to-one recurrent modeling."""
+
     X: np.ndarray  # Shape: (N, sequence_length, feature_dim)
     y: np.ndarray  # Shape: (N, 1)
 
@@ -33,7 +35,9 @@ class TemporalDataset:
             data = data.reshape(-1, 1)
         n_samples = len(data) - sequence_length - horizon + 1
         if n_samples <= 0:
-            raise ValueError(f"Series length {len(data)} too short for sequence_length={sequence_length}")
+            raise ValueError(
+                f"Series length {len(data)} too short for sequence_length={sequence_length}"
+            )
 
         X_list, y_list = [], []
         for i in range(n_samples):
@@ -176,7 +180,7 @@ class LSTMForecaster:
                     dc = dc_next + dh_next * o * (1.0 - tanh(c_curr) ** 2)
                     df = dc * c_prev * f * (1.0 - f)
                     di = dc * c_cand * i * (1.0 - i)
-                    dc_cand = dc * i * (1.0 - c_cand ** 2)
+                    dc_cand = dc * i * (1.0 - c_cand**2)
 
                     dgates = np.hstack([df, di, dc_cand, do])
                     dW_x += X_b[:, t, :].T @ dgates
@@ -196,9 +200,9 @@ class LSTMForecaster:
                     (self.b_out, db_out, m_bout, v_bout),
                 ]:
                     m[:] = beta1 * m + (1 - beta1) * grad
-                    v[:] = beta2 * v + (1 - beta2) * (grad ** 2)
-                    m_hat = m / (1 - beta1 ** step)
-                    v_hat = v / (1 - beta2 ** step)
+                    v[:] = beta2 * v + (1 - beta2) * (grad**2)
+                    m_hat = m / (1 - beta1**step)
+                    v_hat = v / (1 - beta2**step)
                     param -= self.learning_rate * m_hat / (np.sqrt(v_hat) + eps)
 
             if len(X_val) > 0:
@@ -230,9 +234,9 @@ class LSTMForecaster:
         arr = np.asarray(recent_sequence, dtype=float)
         scaled_arr = (arr - self.feature_mean) / self.feature_std
         if scaled_arr.ndim == 1:
-            scaled_arr = scaled_arr[-self.sequence_length:].reshape(1, self.sequence_length, 1)
+            scaled_arr = scaled_arr[-self.sequence_length :].reshape(1, self.sequence_length, 1)
         elif scaled_arr.ndim == 2 and scaled_arr.shape[0] >= self.sequence_length:
-            scaled_arr = scaled_arr[-self.sequence_length:].reshape(1, self.sequence_length, -1)
+            scaled_arr = scaled_arr[-self.sequence_length :].reshape(1, self.sequence_length, -1)
 
         y_scaled = self._predict_array(scaled_arr)
         y_orig = y_scaled * self.feature_std + self.feature_mean
@@ -250,5 +254,5 @@ class LSTMForecaster:
 
 class GRUForecaster(LSTMForecaster):
     """Gated Recurrent Unit (GRU) forecaster with update and reset gates."""
+
     # Inherits sequence management and temporal dataset handling from LSTMForecaster
-    pass

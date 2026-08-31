@@ -1,7 +1,9 @@
 """Tests for admissible A* heuristic, consistency, and Dijkstra optimality equivalence."""
+
 import pytest
 
-from src.dsa.graphs.astar import create_admissible_heuristic, haversine_distance_km, shortest_path as astar_shortest_path
+from src.dsa.graphs.astar import create_admissible_heuristic, haversine_distance_km
+from src.dsa.graphs.astar import shortest_path as astar_shortest_path
 from src.dsa.graphs.dijkstra import shortest_path as dijkstra_shortest_path
 from src.dsa.graphs.edge import Edge
 from src.dsa.graphs.graph import RoadGraph
@@ -26,12 +28,12 @@ def geometric_grid_graph():
             u_id = f"n_{r}_{c}"
             u_node = g.nodes[u_id]
             if r + 1 < 4:
-                v_id = f"n_{r+1}_{c}"
+                v_id = f"n_{r + 1}_{c}"
                 v_node = g.nodes[v_id]
                 weight = haversine_distance_km(u_node, v_node)
                 g.add_edge(Edge(u_id, v_id, weight), bidirectional=True)
             if c + 1 < 4:
-                v_id = f"n_{r}_{c+1}"
+                v_id = f"n_{r}_{c + 1}"
                 v_node = g.nodes[v_id]
                 weight = haversine_distance_km(u_node, v_node)
                 g.add_edge(Edge(u_id, v_id, weight), bidirectional=True)

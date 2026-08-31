@@ -8,9 +8,10 @@ Integrates:
 - Priority Queue: Real-time event scheduling and frontier exploration.
 - 0/1 Knapsack DP: Optimal payload parcel selection under vehicle capacity limits.
 """
+
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from collections.abc import Sequence
 
 from src.dsa.dynamic_programming.knapsack import knapsack
 from src.dsa.graphs.graph import RoadGraph
@@ -30,7 +31,9 @@ class TrafficSpeedRangeQuery:
             raise ValueError("speeds sequence cannot be empty")
         self.raw_speeds = list(speeds)
         self.aggregation = aggregation
-        combine_fn = min if aggregation == "min" else (max if aggregation == "max" else lambda a, b: a + b)
+        combine_fn = (
+            min if aggregation == "min" else (max if aggregation == "max" else lambda a, b: a + b)
+        )
         self.tree = SegmentTree(self.raw_speeds, combine=combine_fn)
 
     def update_speed(self, time_index: int, new_speed: float) -> None:

@@ -1,11 +1,17 @@
 """Segment tree for range queries (max, min, sum) and point updates in O(log N)."""
+
 from __future__ import annotations
 
-from typing import Callable, Sequence
+from collections.abc import Callable, Sequence
 
 
 class SegmentTree:
-    def __init__(self, values: Sequence[float], combine: Callable[[float, float], float] = max, default_val: float | None = None):
+    def __init__(
+        self,
+        values: Sequence[float],
+        combine: Callable[[float, float], float] = max,
+        default_val: float | None = None,
+    ):
         self.n = len(values)
         self.combine = combine
         if default_val is not None:

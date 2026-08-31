@@ -1,10 +1,10 @@
 """Deep Q-Network (DQN) agent with experience replay and target network."""
+
 from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass
 from random import Random
-from typing import Any, Sequence
 
 import numpy as np
 
@@ -97,13 +97,15 @@ class DQNAgent:
         done: bool,
     ) -> None:
         """Store experience transition in replay buffer."""
-        self.memory.append((
-            np.asarray(state, dtype=float),
-            int(action),
-            float(reward),
-            np.asarray(next_state, dtype=float),
-            bool(done),
-        ))
+        self.memory.append(
+            (
+                np.asarray(state, dtype=float),
+                int(action),
+                float(reward),
+                np.asarray(next_state, dtype=float),
+                bool(done),
+            )
+        )
 
     def train_step(self) -> float:
         """Sample mini-batch from replay buffer and perform Q-learning update."""

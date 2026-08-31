@@ -1,7 +1,9 @@
 """Binary search algorithms for sorted sequences."""
+
 from __future__ import annotations
 
-from typing import Any, Callable, Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 
 
 def binary_search(arr: Sequence[Any], target: Any, key: Callable[[Any], Any] | None = None) -> int:

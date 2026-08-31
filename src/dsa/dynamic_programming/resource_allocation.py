@@ -1,7 +1,8 @@
 """Resource Allocation Dynamic Programming algorithm for fleet and warehouse capacity."""
+
 from __future__ import annotations
 
-from typing import Callable, Sequence
+from collections.abc import Callable
 
 
 def allocate_resources(
@@ -12,12 +13,12 @@ def allocate_resources(
     """
     Allocate `num_resources` units across `projects_count` entities (e.g. vehicles to zones)
     to maximize total return.
-    
+
     Args:
         num_resources: Total available discrete units (e.g. 10 vehicles).
         projects_count: Number of targets (e.g. 4 logistics delivery zones).
         return_fn(project_idx, allocated_units) -> utility/return.
-        
+
     Returns:
         (max_return, allocation_list_per_project)
     """

@@ -1,7 +1,8 @@
 """Sliding window algorithms for streaming logistics metrics."""
+
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from src.dsa.sequences.monotonic_queue import MonotonicQueue
 

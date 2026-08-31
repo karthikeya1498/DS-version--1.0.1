@@ -1,15 +1,15 @@
 """Unit tests for SQLAlchemy database persistence, models, and repositories."""
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.database.models import (
     Base,
-    DecisionTraceModel,
     OptimizationPlanModel,
     OrderModel,
-    SimulationRunModel,
     VehicleModel,
 )
 from src.database.repositories import (
@@ -32,7 +32,7 @@ def db_session():
 
 def test_order_repository_crud(db_session):
     repo = OrderRepository(db_session)
-    now = datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 1, 1, 10, 0, tzinfo=UTC)
 
     order = OrderModel(
         order_id="ORD-001",

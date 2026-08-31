@@ -49,7 +49,18 @@ def test_websocket_requires_jwt(monkeypatch):
     token = create_token("alice", "tenant-a")
     with client.websocket_connect(f"/api/v1/ws/traffic?token={token}") as websocket:
         assert websocket.receive_json()["event_type"] == "connected"
-        asyncio.run(traffic_stream.publish("route_reoptimization", {"tenant_id": "tenant-a", "zone_id": "zone-1", "multiplier": 1.4, "affected_vehicle_ids": ["v-1"], "action": "recompute_routes"}))
+        asyncio.run(
+            traffic_stream.publish(
+                "route_reoptimization",
+                {
+                    "tenant_id": "tenant-a",
+                    "zone_id": "zone-1",
+                    "multiplier": 1.4,
+                    "affected_vehicle_ids": ["v-1"],
+                    "action": "recompute_routes",
+                },
+            )
+        )
         event = websocket.receive_json()
         assert event["event_type"] == "route_reoptimization"
         assert event["payload"]["zone_id"] == "zone-1"

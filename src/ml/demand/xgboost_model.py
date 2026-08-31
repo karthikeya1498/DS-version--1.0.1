@@ -1,7 +1,8 @@
 """Demand forecasting model with native XGBoost and explicit backend metadata."""
+
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any
 
 import numpy as np
 
@@ -17,7 +18,9 @@ class DemandForecaster:
         self.feature_names: list[str] = []
         self.mean = 0.0
 
-    def fit(self, features: Any, target: Any, feature_names: list[str] | None = None) -> DemandForecaster:
+    def fit(
+        self, features: Any, target: Any, feature_names: list[str] | None = None
+    ) -> DemandForecaster:
         x = np.asarray(features, dtype=float)
         y = np.asarray(target, dtype=float)
         self.feature_count = x.shape[1] if x.ndim == 2 else 0

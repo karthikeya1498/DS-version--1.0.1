@@ -1,13 +1,15 @@
 """Fleet vehicle state feature engineering."""
+
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
 
 from src.simulation.models import Vehicle, VehicleStatus
 
 
-def extract_vehicle_features(vehicle: Vehicle, current_time: datetime | None = None) -> dict[str, float]:
+def extract_vehicle_features(
+    vehicle: Vehicle, current_time: datetime | None = None
+) -> dict[str, float]:
     """
     Extract state features for a fleet vehicle:
     - capacity utilization

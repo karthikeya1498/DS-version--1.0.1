@@ -1,10 +1,14 @@
 """Unit tests for LateRiskClassifier, Platt Scaling, Brier Score, and Expected Calibration Error (ECE)."""
-import numpy as np
-import pytest
 
-from src.ml.evaluation.calibration import PlattScaler, brier_score, expected_calibration_error, reliability_curve
+import numpy as np
+
+from src.ml.evaluation.calibration import (
+    PlattScaler,
+    brier_score,
+    expected_calibration_error,
+    reliability_curve,
+)
 from src.ml.late_risk.classifier import LateRiskClassifier
-from src.ml.late_risk.train import train_late_risk_model
 
 
 def test_late_risk_classifier_and_probabilities():

@@ -1,9 +1,10 @@
 """Simulated Annealing metaheuristic for multi-stop vehicle route sequencing."""
+
 from __future__ import annotations
 
 import math
+from collections.abc import Callable, Sequence
 from random import Random
-from typing import Callable, Sequence
 
 
 class SimulatedAnnealingSolver:

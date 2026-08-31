@@ -1,7 +1,9 @@
 """Disjoint Set Union (Union-Find) with path compression and union by rank."""
+
 from __future__ import annotations
 
-from typing import Generic, Hashable, TypeVar
+from collections.abc import Hashable
+from typing import Generic, TypeVar
 
 T = TypeVar("T", bound=Hashable)
 

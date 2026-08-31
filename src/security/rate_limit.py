@@ -75,7 +75,11 @@ class TenantRateLimiter:
             if fail_open is not None
             else os.getenv("APP_ENV", "development").lower() not in {"prod", "production"}
         )
-        self._redis: Any = Redis.from_url(self.redis_url, decode_responses=False) if Redis and self.redis_url else None
+        self._redis: Any = (
+            Redis.from_url(self.redis_url, decode_responses=False)
+            if Redis and self.redis_url
+            else None
+        )
         self._fallback: dict[str, deque[float]] = defaultdict(deque)
         self._fallback_lock = asyncio.Lock()
         self.using_fallback = self._redis is None

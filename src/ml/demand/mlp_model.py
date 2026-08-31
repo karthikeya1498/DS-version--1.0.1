@@ -1,7 +1,9 @@
 """Multi-Layer Perceptron (MLP) Neural Forecaster with layer activation inspection."""
+
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 
@@ -130,10 +132,10 @@ class MLPForecaster:
                     m_b[i] = beta1 * m_b[i] + (1 - beta1) * db_list[i]
                     v_b[i] = beta2 * v_b[i] + (1 - beta2) * (db_list[i] ** 2)
 
-                    m_w_hat = m_w[i] / (1 - beta1 ** t)
-                    v_w_hat = v_w[i] / (1 - beta2 ** t)
-                    m_b_hat = m_b[i] / (1 - beta1 ** t)
-                    v_b_hat = v_b[i] / (1 - beta2 ** t)
+                    m_w_hat = m_w[i] / (1 - beta1**t)
+                    v_w_hat = v_w[i] / (1 - beta2**t)
+                    m_b_hat = m_b[i] / (1 - beta1**t)
+                    v_b_hat = v_b[i] / (1 - beta2**t)
 
                     self.weights[i] -= self.learning_rate * m_w_hat / (np.sqrt(v_w_hat) + eps)
                     self.biases[i] -= self.learning_rate * m_b_hat / (np.sqrt(v_b_hat) + eps)

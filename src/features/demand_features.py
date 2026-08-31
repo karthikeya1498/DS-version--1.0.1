@@ -1,8 +1,8 @@
 """Leakage-safe demand forecasting feature engineering."""
+
 from __future__ import annotations
 
-import math
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 import pandas as pd
@@ -13,16 +13,18 @@ def extract_temporal_features(timestamps: pd.Series) -> pd.DataFrame:
     dt = pd.to_datetime(timestamps, utc=True)
     hours = dt.dt.hour
     dow = dt.dt.dayofweek
-    return pd.DataFrame({
-        "hour": hours,
-        "hour_sin": np.sin(2 * np.pi * hours / 24.0),
-        "hour_cos": np.cos(2 * np.pi * hours / 24.0),
-        "day_of_week": dow,
-        "day_sin": np.sin(2 * np.pi * dow / 7.0),
-        "day_cos": np.cos(2 * np.pi * dow / 7.0),
-        "is_weekend": (dow >= 5).astype(int),
-        "day_of_month": dt.dt.day,
-    })
+    return pd.DataFrame(
+        {
+            "hour": hours,
+            "hour_sin": np.sin(2 * np.pi * hours / 24.0),
+            "hour_cos": np.cos(2 * np.pi * hours / 24.0),
+            "day_of_week": dow,
+            "day_sin": np.sin(2 * np.pi * dow / 7.0),
+            "day_cos": np.cos(2 * np.pi * dow / 7.0),
+            "is_weekend": (dow >= 5).astype(int),
+            "day_of_month": dt.dt.day,
+        }
+    )
 
 
 def build_demand_lag_features(
@@ -46,7 +48,11 @@ def build_demand_lag_features(
     sort_cols = [group_col, timestamp_col] if group_col and group_col in data else [timestamp_col]
     data = data.sort_values(sort_cols).reset_index(drop=True)
 
-    grouped = data.groupby(group_col, sort=False)[target_col] if group_col and group_col in data else data[target_col]
+    grouped = (
+        data.groupby(group_col, sort=False)[target_col]
+        if group_col and group_col in data
+        else data[target_col]
+    )
 
     for lag in lags:
         data[f"lag_{lag}"] = grouped.shift(lag)
@@ -54,8 +60,12 @@ def build_demand_lag_features(
     for w in rolling_windows:
         prior = grouped.shift(1)
         if group_col and group_col in data:
-            data[f"rolling_mean_{w}"] = prior.rolling(w, min_periods=w).mean().reset_index(level=0, drop=True)
-            data[f"rolling_std_{w}"] = prior.rolling(w, min_periods=w).std().fillna(0.0).reset_index(level=0, drop=True)
+            data[f"rolling_mean_{w}"] = (
+                prior.rolling(w, min_periods=w).mean().reset_index(level=0, drop=True)
+            )
+            data[f"rolling_std_{w}"] = (
+                prior.rolling(w, min_periods=w).std().fillna(0.0).reset_index(level=0, drop=True)
+            )
         else:
             data[f"rolling_mean_{w}"] = prior.rolling(w, min_periods=w).mean()
             data[f"rolling_std_{w}"] = prior.rolling(w, min_periods=w).std().fillna(0.0)
@@ -64,5 +74,9 @@ def build_demand_lag_features(
     for col in temporal.columns:
         data[col] = temporal[col]
 
-    data["target"] = grouped.shift(-horizon) if group_col and group_col in data else data[target_col].shift(-horizon)
+    data["target"] = (
+        grouped.shift(-horizon)
+        if group_col and group_col in data
+        else data[target_col].shift(-horizon)
+    )
     return data.dropna().reset_index(drop=True)

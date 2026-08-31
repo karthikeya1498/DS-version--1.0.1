@@ -1,9 +1,10 @@
 """Weighted Interval Scheduling Dynamic Programming algorithm."""
+
 from __future__ import annotations
 
 from bisect import bisect_right
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
 
 
 @dataclass(frozen=True)
@@ -46,7 +47,9 @@ def weighted_interval_scheduling(intervals: Sequence[Interval]) -> tuple[float, 
     chosen = []
     curr = n
     while curr > 0:
-        incl = sorted_intervals[curr - 1].weight + (dp[p[curr - 1] + 1] if p[curr - 1] != -1 else 0.0)
+        incl = sorted_intervals[curr - 1].weight + (
+            dp[p[curr - 1] + 1] if p[curr - 1] != -1 else 0.0
+        )
         excl = dp[curr - 1]
         if incl >= excl:
             chosen.append(sorted_intervals[curr - 1])

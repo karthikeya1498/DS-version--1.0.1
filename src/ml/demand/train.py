@@ -1,9 +1,9 @@
 """Demand model training pipeline comparing XGBoost, MLP, LSTM, and Seasonal Baseline."""
+
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any
 
-import numpy as np
 import pandas as pd
 
 from src.features.demand_features import build_demand_lag_features
@@ -29,10 +29,14 @@ def train_demand_models(
     features_df = build_demand_lag_features(
         raw_df, timestamp_col=timestamp_col, target_col=target_col, group_col=group_col
     )
-    feature_cols = [c for c in features_df.columns if c not in {timestamp_col, target_col, group_col, "target"}]
+    feature_cols = [
+        c for c in features_df.columns if c not in {timestamp_col, target_col, group_col, "target"}
+    ]
 
     # 2. Chronological Split (Train: 70%, Val: 15%, Test: 15%)
-    train_df, val_df, test_df = chronological_split(features_df, train_fraction=0.70, validation_fraction=0.15)
+    train_df, val_df, test_df = chronological_split(
+        features_df, train_fraction=0.70, validation_fraction=0.15
+    )
 
     X_train, y_train = train_df[feature_cols].values, train_df["target"].values
     X_val, y_val = val_df[feature_cols].values, val_df["target"].values

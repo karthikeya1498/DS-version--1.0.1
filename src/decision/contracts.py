@@ -1,4 +1,5 @@
 """Canonical contracts linking the five OPTIMA-X phases."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -14,6 +15,7 @@ class PredictionBundle:
     uncertainty: dict[str, float] = field(default_factory=dict)
     model_versions: dict[str, str] = field(default_factory=dict)
 
+
 @dataclass(frozen=True)
 class RLDecision:
     policy_version: str
@@ -22,7 +24,8 @@ class RLDecision:
     masked_actions: tuple[str, ...]
     reward: float
     diagnostics: dict[str, float] = field(default_factory=dict)
-    next_state_reference: str = ''
+    next_state_reference: str = ""
+
 
 @dataclass(frozen=True)
 class CandidateEvidence:
@@ -30,8 +33,9 @@ class CandidateEvidence:
     action: str
     feasible: bool
     objective: float
-    rejection_reason: str = ''
+    rejection_reason: str = ""
     metrics: dict[str, float] = field(default_factory=dict)
+
 
 @dataclass(frozen=True)
 class DecisionRecord:
@@ -47,6 +51,6 @@ class DecisionRecord:
     candidates: tuple[CandidateEvidence, ...] = ()
     prediction_bundle: PredictionBundle | None = None
     rl_decision: RLDecision | None = None
-    code_commit: str = ''
-    experiment_id: str = ''
+    code_commit: str = ""
+    experiment_id: str = ""
     explanation_evidence: tuple[str, ...] = ()

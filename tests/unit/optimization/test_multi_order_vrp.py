@@ -1,12 +1,14 @@
 """Unit tests for multi-order vehicle routing, capacity bin-packing, and 50-order stress test."""
-from datetime import datetime, timedelta, timezone
+
+from datetime import UTC, datetime, timedelta
+
 import pytest
 
 from src.dsa.graphs.edge import Edge
 from src.dsa.graphs.graph import RoadGraph
 from src.dsa.graphs.node import Node
 from src.optimization.assignment.order_assignment import cluster_orders_by_capacity
-from src.optimization.phase3_engine import Objective, ObjectiveConfig, Phase3Solver, Prediction
+from src.optimization.phase3_engine import Objective, ObjectiveConfig, Phase3Solver
 from src.optimization.routing.graph_dispatch import GraphDispatchRouter
 from src.optimization.routing.simulated_annealing import SimulatedAnnealingSolver
 from src.optimization.routing.tabu_search import TabuSearchSolver
@@ -28,19 +30,33 @@ def urban_road_graph():
 
 
 def test_capacity_multi_order_clustering():
-    now = datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 1, 1, 9, 0, tzinfo=UTC)
     depot = Location("depot", "zone_1", 12.97, 77.59)
     dest = Location("A", "zone_1", 12.98, 77.60)
 
     # 10 orders of demand 2 each = total 20 demand
     orders = [
-        Order(f"ord_{i}", depot, dest, demand_units=2, created_at=now, time_window=TimeWindow(now, now + timedelta(hours=2)))
+        Order(
+            f"ord_{i}",
+            depot,
+            dest,
+            demand_units=2,
+            created_at=now,
+            time_window=TimeWindow(now, now + timedelta(hours=2)),
+        )
         for i in range(10)
     ]
 
     # 2 vehicles of capacity 10 each
     vehicles = [
-        Vehicle(f"v_{i}", home_base=depot, capacity_units=10, available_from=now, available_until=now + timedelta(hours=8), current_location=depot)
+        Vehicle(
+            f"v_{i}",
+            home_base=depot,
+            capacity_units=10,
+            available_from=now,
+            available_until=now + timedelta(hours=8),
+            current_location=depot,
+        )
         for i in range(2)
     ]
 
@@ -58,7 +74,7 @@ def test_50_order_stress_test_capacity_utilization(urban_road_graph):
     50 orders, 10 vehicles of capacity 50 each.
     The system MUST exploit multi-order capacity and serve ALL 50 orders!
     """
-    now = datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 1, 1, 9, 0, tzinfo=UTC)
     depot = Location("depot", "zone_1", 12.97, 77.59)
     nodes = ["A", "B", "C", "D"]
 

@@ -10,6 +10,7 @@ from src.realtime.traffic_stream import TrafficStream
 
 def test_publish_keeps_latest_event_when_queue_is_full():
     """A slow subscriber loses the oldest event, never the newest event."""
+
     async def scenario():
         stream = TrafficStream()
         queue = await stream.subscribe()

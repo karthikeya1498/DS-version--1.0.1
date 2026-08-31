@@ -1,7 +1,8 @@
 """Vehicle fleet allocation and insertion optimizer."""
+
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from src.optimization.assignment.order_assignment import cluster_orders_by_capacity
 from src.simulation.models import Order, Vehicle

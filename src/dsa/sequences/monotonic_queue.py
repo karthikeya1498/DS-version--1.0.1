@@ -1,8 +1,9 @@
 """Monotonic Queue data structure for O(1) sliding window min/max."""
+
 from __future__ import annotations
 
 from collections import deque
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
 
 T = TypeVar("T")
 

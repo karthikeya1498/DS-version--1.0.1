@@ -1,9 +1,9 @@
 """Capacity-aware multi-order clustering and bundle formation."""
+
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
-from src.dsa.dynamic_programming.knapsack import knapsack
 from src.simulation.models import Order, Vehicle
 
 
@@ -15,7 +15,7 @@ def cluster_orders_by_capacity(
     Assign multiple orders to vehicle bundles respecting each vehicle's capacity.
     Orders are sorted by priority and urgency (deadline end), then assigned
     to vehicles using capacity-constrained bin-packing.
-    
+
     Returns:
         (assigned_bundles_by_vehicle_id, unassigned_orders)
     """
@@ -40,7 +40,8 @@ def cluster_orders_by_capacity(
         # Find best feasible vehicle with enough remaining capacity
         # Preference: vehicle with matching zone/closest location or highest available capacity
         candidate_vehicles = [
-            v for v in available_vehicles
+            v
+            for v in available_vehicles
             if vehicle_loads[v.vehicle_id] + order.demand_units <= vehicle_capacities[v.vehicle_id]
         ]
 
@@ -50,7 +51,10 @@ def cluster_orders_by_capacity(
             best_vehicle = min(
                 candidate_vehicles,
                 key=lambda v: (
-                    0 if bundles[v.vehicle_id] and bundles[v.vehicle_id][-1].destination.zone_id == order.destination.zone_id else 1,
+                    0
+                    if bundles[v.vehicle_id]
+                    and bundles[v.vehicle_id][-1].destination.zone_id == order.destination.zone_id
+                    else 1,
                     vehicle_capacities[v.vehicle_id] - vehicle_loads[v.vehicle_id],
                 ),
             )

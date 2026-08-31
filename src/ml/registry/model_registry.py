@@ -1,9 +1,9 @@
 """Production-grade Model Registry for reproducible model artifacts and lineage governance."""
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
-import hashlib
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -34,7 +34,7 @@ class ModelRegistry:
         meta = metadata or {}
         record_meta = {
             "name": name,
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "dataset_hash": dataset_hash,
             "feature_version": feature_version,
             "approval_status": approval_status,
