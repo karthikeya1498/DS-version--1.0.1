@@ -1,9 +1,8 @@
 """Google OR-Tools Vehicle Routing Problem (CVRP / TSP) solver."""
+
 from __future__ import annotations
 
-from typing import Sequence
-
-from src.simulation.models import Order, Vehicle
+from collections.abc import Sequence
 
 
 class ORToolsRoutingSolver:
@@ -39,9 +38,7 @@ class ORToolsRoutingSolver:
 
         # Scale distance matrix to integer for OR-Tools solver
         scale = 1000
-        int_dist_matrix = [
-            [int(distance_matrix[i][j] * scale) for j in range(n)] for i in range(n)
-        ]
+        int_dist_matrix = [[int(distance_matrix[i][j] * scale) for j in range(n)] for i in range(n)]
 
         manager = pywrapcp.RoutingIndexManager(n, 1, 0)
         routing = pywrapcp.RoutingModel(manager)
@@ -80,6 +77,4 @@ class ORToolsRoutingSolver:
 
             return ordered_nodes, float(total_dist)
 
-        return list(node_names), sum(
-            distance_matrix[i][i + 1] for i in range(len(node_names) - 1)
-        )
+        return list(node_names), sum(distance_matrix[i][i + 1] for i in range(len(node_names) - 1))

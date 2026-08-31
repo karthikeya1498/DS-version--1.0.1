@@ -1,8 +1,9 @@
 """A* shortest path with mathematically admissible and consistent heuristics."""
+
 from __future__ import annotations
 
 import math
-from typing import Callable
+from collections.abc import Callable
 
 from src.dsa.graphs.dijkstra import PathResult, _reconstruct
 from src.dsa.graphs.graph import RoadGraph
@@ -18,7 +19,9 @@ def haversine_distance_km(a: Node, b: Node) -> float:
     lat2, lon2 = math.radians(b.latitude), math.radians(b.longitude)
     dlat = lat2 - lat1
     dlon = lon2 - lon1
-    val = (math.sin(dlat / 2.0) ** 2) + math.cos(lat1) * math.cos(lat2) * (math.sin(dlon / 2.0) ** 2)
+    val = (math.sin(dlat / 2.0) ** 2) + math.cos(lat1) * math.cos(lat2) * (
+        math.sin(dlon / 2.0) ** 2
+    )
     val = min(1.0, max(0.0, val))
     return 2.0 * EARTH_RADIUS_KM * math.asin(math.sqrt(val))
 
@@ -41,6 +44,7 @@ def create_admissible_heuristic(
     This guarantees h(u, v) <= true_remaining_cost (admissibility)
     and h(u, v) <= cost(u, w) + h(w, v) (consistency / triangle inequality).
     """
+
     def heuristic(current: str, goal: str) -> float:
         if current == goal:
             return 0.0

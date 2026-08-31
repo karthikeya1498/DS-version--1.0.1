@@ -1,7 +1,9 @@
 """Monotonic Stack algorithms for next greater/smaller element queries."""
+
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 
 def next_greater_elements(arr: Sequence[Any]) -> list[int]:

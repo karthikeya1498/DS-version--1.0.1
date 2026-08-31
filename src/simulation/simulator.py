@@ -1,9 +1,9 @@
 """Deterministic discrete-event logistics simulator with Synthetic and Real-Data Replay modes."""
+
 from __future__ import annotations
 
-from datetime import timedelta
 import random
-from typing import Callable
+from datetime import timedelta
 
 from src.simulation.event_engine import EventEngine
 from src.simulation.fleet_engine import FleetEngine
@@ -64,7 +64,9 @@ class LogisticsSimulator:
             nonlocal distance
 
             if event.event_type == EventType.ORDER_CREATED:
-                order = next((o for o in self.scenario.orders if o.order_id == event.entity_id), None)
+                order = next(
+                    (o for o in self.scenario.orders if o.order_id == event.entity_id), None
+                )
                 if order is None:
                     return
 
@@ -95,7 +97,9 @@ class LogisticsSimulator:
                 )
 
             elif event.event_type == EventType.ORDER_DELIVERED:
-                order = next((o for o in self.scenario.orders if o.order_id == event.entity_id), None)
+                order = next(
+                    (o for o in self.scenario.orders if o.order_id == event.entity_id), None
+                )
                 v_id = event.payload.get("vehicle_id") if event.payload else None
                 vehicle = next((v for v in self.scenario.vehicles if v.vehicle_id == v_id), None)
 

@@ -1,14 +1,11 @@
 """Unit tests for DQN, PPO, Q-Learning, and Domain State Encoding."""
-from datetime import datetime, timedelta, timezone
-import numpy as np
-import pytest
 
-from src.rl.agents.dqn import DQNAgent, DQNConfig
-from src.rl.agents.ppo import PPOAgent, PPOConfig
-from src.rl.agents.q_learning import QLearningAgent
+from datetime import UTC, datetime, timedelta
+
+from src.rl.agents.dqn import DQNAgent
 from src.rl.environment.logistics_env import LogisticsEnv
 from src.rl.environment.state import LogisticsState
-from src.simulation.models import Location, Order, TimeWindow, Vehicle, VehicleStatus
+from src.simulation.models import Location, Order, TimeWindow, Vehicle
 
 
 def test_dqn_agent_learning():
@@ -30,16 +27,38 @@ def test_dqn_agent_learning():
 
 
 def test_domain_state_encoder():
-    now = datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 1, 1, 10, 0, tzinfo=UTC)
     loc_a = Location("A", "zone_0", 0, 0)
     loc_b = Location("B", "zone_1", 0, 1)
 
     orders = [
-        Order("o1", loc_a, loc_a, demand_units=3, created_at=now, time_window=TimeWindow(now, now + timedelta(hours=2))),
-        Order("o2", loc_a, loc_b, demand_units=5, created_at=now, time_window=TimeWindow(now, now + timedelta(hours=2))),
+        Order(
+            "o1",
+            loc_a,
+            loc_a,
+            demand_units=3,
+            created_at=now,
+            time_window=TimeWindow(now, now + timedelta(hours=2)),
+        ),
+        Order(
+            "o2",
+            loc_a,
+            loc_b,
+            demand_units=5,
+            created_at=now,
+            time_window=TimeWindow(now, now + timedelta(hours=2)),
+        ),
     ]
     vehicles = [
-        Vehicle("v1", loc_a, capacity_units=10, available_from=now, available_until=now + timedelta(hours=8), current_location=loc_a, load_units=2),
+        Vehicle(
+            "v1",
+            loc_a,
+            capacity_units=10,
+            available_from=now,
+            available_until=now + timedelta(hours=8),
+            current_location=loc_a,
+            load_units=2,
+        ),
     ]
 
     state = LogisticsState.from_domain_entities(

@@ -1,9 +1,8 @@
 """Neural MLP model for ETA trip duration forecasting."""
+
 from __future__ import annotations
 
 from typing import Any
-
-import numpy as np
 
 from src.ml.demand.mlp_model import MLPForecaster
 

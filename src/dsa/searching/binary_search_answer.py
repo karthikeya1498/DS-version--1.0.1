@@ -1,7 +1,8 @@
 """Binary search on answer for monotonic predicates (e.g. minimum feasible fleet size)."""
+
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 
 def binary_search_minimum_feasible(
@@ -12,7 +13,7 @@ def binary_search_minimum_feasible(
     """
     Find the minimum integer k in range [low, high] such that predicate(k) is True.
     Assumes monotonicity: if predicate(k) is True, then predicate(k+1) is also True.
-    
+
     Returns None if no value in [low, high] satisfies predicate.
     """
     result = None

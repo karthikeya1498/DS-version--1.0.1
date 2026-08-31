@@ -1,4 +1,5 @@
 """Fuel consumption and emission objective calculations."""
+
 from __future__ import annotations
 
 

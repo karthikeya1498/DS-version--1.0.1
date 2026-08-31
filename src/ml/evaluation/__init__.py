@@ -1,4 +1,5 @@
 """ML Evaluation package."""
+
 from src.ml.evaluation.calibration import (
     PlattScaler,
     brier_score,
@@ -14,16 +15,16 @@ from src.ml.evaluation.validation import (
 )
 
 __all__ = [
-    "mae",
-    "rmse",
-    "mape",
-    "r2",
+    "PlattScaler",
+    "analyze_error_slices",
+    "bootstrap_metric_ci",
     "brier_score",
     "expected_calibration_error",
-    "reliability_curve",
-    "PlattScaler",
-    "rolling_origin_cv",
-    "bootstrap_metric_ci",
+    "mae",
+    "mape",
     "paired_model_comparison",
-    "analyze_error_slices",
+    "r2",
+    "reliability_curve",
+    "rmse",
+    "rolling_origin_cv",
 ]

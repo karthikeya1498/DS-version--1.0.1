@@ -1,7 +1,7 @@
 """Scalability and high-throughput load benchmark for OPTIMA-X."""
+
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
 from time import perf_counter
 from typing import Any
 
@@ -28,15 +28,17 @@ def run_scalability_benchmark(order_batches: tuple[int, ...] = (50, 100, 200, 50
 
         throughput_ops = n_orders / max(wall_sec, 1e-4)
 
-        rows.append({
-            "order_volume": n_orders,
-            "fleet_size": n_vehicles,
-            "served_orders": result.served_orders,
-            "unserved_orders": result.unserved_orders,
-            "solve_time_sec": round(wall_sec, 3),
-            "throughput_orders_per_sec": round(throughput_ops, 1),
-            "total_cost": round(result.total_cost, 2),
-        })
+        rows.append(
+            {
+                "order_volume": n_orders,
+                "fleet_size": n_vehicles,
+                "served_orders": result.served_orders,
+                "unserved_orders": result.unserved_orders,
+                "solve_time_sec": round(wall_sec, 3),
+                "throughput_orders_per_sec": round(throughput_ops, 1),
+                "total_cost": round(result.total_cost, 2),
+            }
+        )
 
     return pd.DataFrame(rows)
 

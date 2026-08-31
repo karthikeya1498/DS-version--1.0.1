@@ -1,8 +1,8 @@
 """Database connection, engine factory, and schema initialization."""
+
 from __future__ import annotations
 
 import os
-from typing import Iterator
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine

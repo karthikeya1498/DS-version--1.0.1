@@ -1,10 +1,10 @@
 """Allowlisted, deterministic tools connected to real OPTIMA-X engines."""
+
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 from datetime import timedelta
-import math
-from typing import Any
 
 from src.dsa.graphs.edge import Edge
 from src.dsa.graphs.graph import RoadGraph
@@ -12,9 +12,14 @@ from src.dsa.graphs.node import Node
 from src.llm.guardrails import validate_tool_request
 from src.llm.schemas import ScenarioModification, ToolRequest
 from src.optimization.objectives.cost import ObjectiveConfig
-from src.optimization.phase3_engine import Objective, Phase3Solver, Prediction
+from src.optimization.phase3_engine import Objective, Phase3Solver
 from src.optimization.routing.graph_dispatch import GraphDispatchRouter
-from src.simulation.models import Location, Order, SimulationConfig, TimeWindow, Vehicle, VehicleStatus
+from src.simulation.models import (
+    Location,
+    Order,
+    SimulationConfig,
+    Vehicle,
+)
 from src.simulation.scenario_generator import ScenarioGenerator
 from src.simulation.simulator import LogisticsSimulator
 
@@ -63,7 +68,14 @@ def _build_scenario_graph(orders: list[Order], vehicles: list[Vehicle]) -> RoadG
         for j in range(i + 1, len(node_ids)):
             u, v = node_ids[i], node_ids[j]
             loc_u, loc_v = all_locs[u], all_locs[v]
-            d = max(0.5, math.sqrt((loc_u.latitude - loc_v.latitude) ** 2 + (loc_u.longitude - loc_v.longitude) ** 2) * 111.0)
+            d = max(
+                0.5,
+                math.sqrt(
+                    (loc_u.latitude - loc_v.latitude) ** 2
+                    + (loc_u.longitude - loc_v.longitude) ** 2
+                )
+                * 111.0,
+            )
             g.add_edge(Edge(u, v, d), bidirectional=True)
     return g
 
@@ -101,7 +113,9 @@ def _simulate_scenario_handler(arguments: dict) -> dict:
 
 def _compare_solvers_handler(arguments: dict) -> dict:
     """Execute and compare multiple optimization algorithms on a real test scenario."""
-    scenario = ScenarioGenerator(SimulationConfig(seed=42, duration=timedelta(hours=2), zones=3, vehicles=3)).generate()
+    scenario = ScenarioGenerator(
+        SimulationConfig(seed=42, duration=timedelta(hours=2), zones=3, vehicles=3)
+    ).generate()
     orders = scenario.orders[:6]
     vehicles = scenario.vehicles[:2]
 
@@ -129,7 +143,9 @@ def _compare_solvers_handler(arguments: dict) -> dict:
 
 def _optimize_scenario_handler(arguments: dict) -> dict:
     """Optimize a scenario using Phase3Solver and return full route details."""
-    scenario = ScenarioGenerator(SimulationConfig(seed=int(arguments.get("seed", 42)), duration=timedelta(hours=2))).generate()
+    scenario = ScenarioGenerator(
+        SimulationConfig(seed=int(arguments.get("seed", 42)), duration=timedelta(hours=2))
+    ).generate()
     orders = scenario.orders
     vehicles = scenario.vehicles
 
@@ -179,6 +195,8 @@ def default_registry() -> ToolRegistry:
     registry.register("explain_route", _explain_route_handler)
     registry.register(
         "get_prediction",
-        lambda arguments: registry._evidence.get(arguments.get("prediction_id", ""), {"found": False}),
+        lambda arguments: registry._evidence.get(
+            arguments.get("prediction_id", ""), {"found": False}
+        ),
     )
     return registry

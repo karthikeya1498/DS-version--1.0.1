@@ -1,8 +1,9 @@
 """Tabu Search metaheuristic for multi-stop vehicle route sequencing."""
+
 from __future__ import annotations
 
 from collections import deque
-from typing import Callable, Sequence
+from collections.abc import Callable, Sequence
 
 
 class TabuSearchSolver:

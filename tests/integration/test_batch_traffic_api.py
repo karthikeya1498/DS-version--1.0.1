@@ -68,8 +68,18 @@ def test_batch_traffic_update_rejects_empty_and_oversized_payloads(monkeypatch):
     token = create_token("batch-user", "batch-validation")
     client = TestClient(app)
     headers = {"Authorization": f"Bearer {token}"}
-    assert client.post("/api/v1/traffic/updates/batch", headers=headers, json={"updates": []}).status_code == 422
-    assert client.post("/api/v1/traffic/updates/batch", headers=headers, json={"updates": _updates(101)}).status_code == 422
+    assert (
+        client.post(
+            "/api/v1/traffic/updates/batch", headers=headers, json={"updates": []}
+        ).status_code
+        == 422
+    )
+    assert (
+        client.post(
+            "/api/v1/traffic/updates/batch", headers=headers, json={"updates": _updates(101)}
+        ).status_code
+        == 422
+    )
 
 
 def test_rate_limit_429_exposes_retry_headers(monkeypatch):

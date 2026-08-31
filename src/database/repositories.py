@@ -1,16 +1,13 @@
 """SQLAlchemy and in-memory repositories for OPTIMA-X persistence."""
-from __future__ import annotations
 
-from typing import Any, Sequence
+from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
 from src.database.models import (
-    DecisionTraceModel,
     ExperimentRecord,
     OptimizationPlanModel,
     OrderModel,
-    SimulationRunModel,
     VehicleModel,
 )
 

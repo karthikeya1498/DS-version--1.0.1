@@ -1,12 +1,13 @@
 """Typed observation contract and domain state encoder for multi-agent logistics control."""
+
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
 
 import numpy as np
 
-from src.simulation.models import Order, OrderStatus, Vehicle, VehicleStatus
+from src.simulation.models import Order, OrderStatus, Vehicle
 
 
 @dataclass(frozen=True)

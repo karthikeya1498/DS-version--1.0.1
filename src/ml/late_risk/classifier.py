@@ -1,7 +1,8 @@
 """Late-delivery risk probability classifier."""
+
 from __future__ import annotations
 
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -19,7 +20,9 @@ class LateRiskClassifier:
         self.feature_names: list[str] = []
         self.feature_count = 0
 
-    def fit(self, features: Any, labels: Any, feature_names: list[str] | None = None) -> LateRiskClassifier:
+    def fit(
+        self, features: Any, labels: Any, feature_names: list[str] | None = None
+    ) -> LateRiskClassifier:
         x = np.asarray(features, dtype=float)
         y = np.asarray(labels, dtype=int)
         self.feature_count = x.shape[1] if x.ndim == 2 else 0
@@ -27,6 +30,7 @@ class LateRiskClassifier:
 
         try:
             from xgboost import XGBClassifier
+
             self.model = XGBClassifier(
                 n_estimators=self.params.get("n_estimators", 80),
                 max_depth=self.params.get("max_depth", 3),
@@ -39,6 +43,7 @@ class LateRiskClassifier:
             self.model.fit(x, y)
         except ImportError:
             from sklearn.linear_model import LogisticRegression
+
             self.model = LogisticRegression(random_state=self.random_state, max_iter=200)
             self.model.fit(x, y)
 

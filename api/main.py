@@ -61,9 +61,15 @@ async def tenant_rate_limit_middleware(request, call_next):
 
     token = request.headers.get("authorization", "").removeprefix("Bearer ").strip()
     tenant = "anonymous"
-    auth_required = os.getenv(
-        "AUTH_REQUIRED", "true" if os.getenv("APP_ENV", "development").lower() in {"prod", "production"} else "false"
-    ).lower() == "true"
+    auth_required = (
+        os.getenv(
+            "AUTH_REQUIRED",
+            "true"
+            if os.getenv("APP_ENV", "development").lower() in {"prod", "production"}
+            else "false",
+        ).lower()
+        == "true"
+    )
     public = request.url.path in {"/", "/api/v1/health", "/api/v1/auth/token"}
     if token:
         try:

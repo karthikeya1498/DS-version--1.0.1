@@ -1,17 +1,15 @@
 """Phase 3: prediction-aware, capacity-constrained multi-order optimization orchestration."""
+
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable, Sequence
-from dataclasses import dataclass
-from datetime import datetime, timezone
 import math
-from random import Random
+from collections.abc import Callable, Iterable
+from dataclasses import dataclass
+from datetime import datetime
 from time import perf_counter
 
 from src.common.contracts import OptimizationResult, RoutePlan
 from src.dsa.graphs.astar import shortest_path as astar_path
-from src.dsa.graphs.dijkstra import shortest_path as dijkstra_path
-from src.dsa.graphs.graph import RoadGraph
 from src.optimization.assignment.order_assignment import cluster_orders_by_capacity
 from src.optimization.constraints.time_windows import calculate_schedule_lateness
 from src.optimization.objectives.cost import ObjectiveConfig
@@ -22,7 +20,7 @@ from src.optimization.routing.tabu_search import TabuSearchSolver
 from src.optimization.routing.three_opt import improve as three_opt
 from src.optimization.routing.two_opt import improve as two_opt
 from src.optimization.solver.ortools_solver import ORToolsRoutingSolver
-from src.simulation.models import Location, Order, OrderStatus, Vehicle, VehicleStatus
+from src.simulation.models import Order, Vehicle, VehicleStatus
 
 
 @dataclass(frozen=True)
@@ -246,7 +244,13 @@ class Phase3Solver:
         # Fallback Euclidean
         node_u, node_v = self.graph.nodes.get(u), self.graph.nodes.get(v)
         if node_u and node_v:
-            d = math.sqrt((node_u.latitude - node_v.latitude) ** 2 + (node_u.longitude - node_v.longitude) ** 2) * 111.0
+            d = (
+                math.sqrt(
+                    (node_u.latitude - node_v.latitude) ** 2
+                    + (node_u.longitude - node_v.longitude) ** 2
+                )
+                * 111.0
+            )
             return d, (u, v)
         return 10.0, (u, v)
 
@@ -263,7 +267,9 @@ class Phase3Solver:
         if not orders or not vehicles:
             return OptimizationResult(
                 (),
-                self.objective.score(distance_km=0, lateness_minutes=0, unserved_orders=len(orders)),
+                self.objective.score(
+                    distance_km=0, lateness_minutes=0, unserved_orders=len(orders)
+                ),
                 0,
                 len(orders),
                 (perf_counter() - started) * 1000,

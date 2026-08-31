@@ -1,7 +1,6 @@
 """Graph topological and network traffic feature engineering."""
-from __future__ import annotations
 
-from typing import Any
+from __future__ import annotations
 
 from src.dsa.graphs.graph import RoadGraph
 
@@ -9,7 +8,12 @@ from src.dsa.graphs.graph import RoadGraph
 def extract_node_graph_features(graph: RoadGraph, node_id: str) -> dict[str, float]:
     """Extract degree and local network density features for a road node."""
     if node_id not in graph.nodes:
-        return {"out_degree": 0.0, "in_degree": 0.0, "total_degree": 0.0, "avg_outgoing_weight": 0.0}
+        return {
+            "out_degree": 0.0,
+            "in_degree": 0.0,
+            "total_degree": 0.0,
+            "avg_outgoing_weight": 0.0,
+        }
 
     out_edges = graph.neighbors(node_id)
     out_degree = len(out_edges)
@@ -28,7 +32,12 @@ def extract_node_graph_features(graph: RoadGraph, node_id: str) -> dict[str, flo
 def extract_path_graph_features(graph: RoadGraph, path_nodes: list[str]) -> dict[str, float]:
     """Extract path structural metrics (hops, total weight, max segment weight)."""
     if len(path_nodes) < 2:
-        return {"hop_count": 0.0, "total_path_weight": 0.0, "max_segment_weight": 0.0, "avg_segment_weight": 0.0}
+        return {
+            "hop_count": 0.0,
+            "total_path_weight": 0.0,
+            "max_segment_weight": 0.0,
+            "avg_segment_weight": 0.0,
+        }
 
     weights = []
     for u, v in zip(path_nodes[:-1], path_nodes[1:]):

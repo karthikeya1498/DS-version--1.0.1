@@ -1,7 +1,8 @@
 """Probability calibration, Brier score, Expected Calibration Error (ECE), and reliability curves."""
+
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -85,6 +86,7 @@ class PlattScaler:
 
     def fit(self, uncalibrated_scores: Sequence[float], y_true: Sequence[int]) -> PlattScaler:
         from sklearn.linear_model import LogisticRegression
+
         X = np.asarray(uncalibrated_scores, dtype=float).reshape(-1, 1)
         y = np.asarray(y_true, dtype=int)
         lr = LogisticRegression(C=1.0, solver="lbfgs")

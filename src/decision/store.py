@@ -1,4 +1,5 @@
 """Persistence-neutral decision trace store for local and test deployments."""
+
 from __future__ import annotations
 
 from src.decision.contracts import DecisionRecord
@@ -17,5 +18,6 @@ class DecisionStore:
 
     def list(self) -> list[DecisionRecord]:
         return list(self._records.values())
+
 
 store = DecisionStore()

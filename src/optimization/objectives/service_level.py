@@ -1,4 +1,5 @@
 """Service level and unserved order penalties."""
+
 from __future__ import annotations
 
 

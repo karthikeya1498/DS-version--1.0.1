@@ -1,7 +1,8 @@
 """XGBoost trip travel time (ETA) forecaster."""
+
 from __future__ import annotations
 
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -16,7 +17,9 @@ class EtaForecaster:
         self.feature_names: list[str] = []
         self.feature_count = 0
 
-    def fit(self, features: Any, target: Any, feature_names: list[str] | None = None) -> EtaForecaster:
+    def fit(
+        self, features: Any, target: Any, feature_names: list[str] | None = None
+    ) -> EtaForecaster:
         x = np.asarray(features, dtype=float)
         y = np.asarray(target, dtype=float)
         self.feature_count = x.shape[1] if x.ndim == 2 else 0

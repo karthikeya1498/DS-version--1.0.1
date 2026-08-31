@@ -1,4 +1,5 @@
 """Lateness cost and SLA breach penalty."""
+
 from __future__ import annotations
 
 

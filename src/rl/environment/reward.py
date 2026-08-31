@@ -1,4 +1,5 @@
 """Reward shaping with auditable operational components."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -13,6 +14,7 @@ class RewardWeights:
     reward_scale: float = 1.0
     reward_clip: float | None = None
 
+
 @dataclass(frozen=True)
 class RewardBreakdown:
     operating_cost: float
@@ -24,10 +26,27 @@ class RewardBreakdown:
     def total(self) -> float:
         return self.operating_cost + self.lateness + self.unserved + self.priority_completion
 
-def calculate_reward(*, operating_cost: float, late_orders: int, unserved_orders: int, completed_priority: int, weights: RewardWeights = RewardWeights()) -> RewardBreakdown:
-    raw = RewardBreakdown(-weights.operating_cost * operating_cost, -weights.lateness * late_orders, -weights.unserved * unserved_orders, weights.priority_completion * completed_priority)
+
+def calculate_reward(
+    *,
+    operating_cost: float,
+    late_orders: int,
+    unserved_orders: int,
+    completed_priority: int,
+    weights: RewardWeights = RewardWeights(),
+) -> RewardBreakdown:
+    raw = RewardBreakdown(
+        -weights.operating_cost * operating_cost,
+        -weights.lateness * late_orders,
+        -weights.unserved * unserved_orders,
+        weights.priority_completion * completed_priority,
+    )
     scale = max(weights.reward_scale, 1e-9)
-    values = tuple(component / scale for component in (raw.operating_cost, raw.lateness, raw.unserved, raw.priority_completion))
+    values = tuple(
+        component / scale
+        for component in (raw.operating_cost, raw.lateness, raw.unserved, raw.priority_completion)
+    )
     if weights.reward_clip is not None:
-        limit = abs(weights.reward_clip); values = tuple(max(-limit, min(limit, component)) for component in values)
+        limit = abs(weights.reward_clip)
+        values = tuple(max(-limit, min(limit, component)) for component in values)
     return RewardBreakdown(*values)

@@ -1,4 +1,5 @@
 """Vehicle shift and availability constraints."""
+
 from __future__ import annotations
 
 from datetime import datetime
