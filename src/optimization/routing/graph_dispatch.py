@@ -52,7 +52,12 @@ class GraphDispatchRouter:
     def route_batch(
         self, orders: list[Order], vehicles: list[Vehicle], timestamp=None
     ) -> list[DispatchRoute]:
-        """Assign a batch across multiple stops without stopping after one order."""
+        """Assign a batch across multiple stops without stopping after one order.
+
+        The reservation map is deliberately separate from ``Vehicle.status``. A vehicle
+        becomes busy after its first stop, but can still receive later stops in the same
+        atomic planning batch until its capacity is exhausted.
+        """
         timestamp = timestamp or (orders[0].created_at if orders else None)
         if timestamp is None:
             return []
