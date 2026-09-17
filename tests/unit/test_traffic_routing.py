@@ -40,3 +40,19 @@ def test_router_selects_lowest_travel_cost_vehicle():
     ]
     route = GraphDispatchRouter(graph, "dijkstra").route(order, vehicles)
     assert route and route.vehicle_id == "far" and route.path == ("b", "c")
+
+
+def test_batch_router_assigns_multiple_stops_until_capacity():
+    graph = make_graph()
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    origin = Location("a", "zone-a", 0, 0)
+    window = TimeWindow(now, now.replace(hour=2))
+    orders = [
+        Order("o1", origin, Location("b", "zone-b", 0, 1), 1, now, window, priority=2),
+        Order("o2", origin, Location("c", "zone-c", 0, 2), 2, now, window, priority=1),
+    ]
+    vehicle = Vehicle("v1", origin, 3, now, now.replace(hour=2))
+    routes = GraphDispatchRouter(graph, "dijkstra").route_batch(orders, [vehicle])
+    assert [route.order_id for route in routes] == ["o1", "o2"]
+    assert all(order.assigned_vehicle_id == "v1" for order in orders)
+    assert vehicle.load_units == 3
