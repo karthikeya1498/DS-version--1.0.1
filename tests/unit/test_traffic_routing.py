@@ -56,3 +56,14 @@ def test_batch_router_assigns_multiple_stops_until_capacity():
     assert [route.order_id for route in routes] == ["o1", "o2"]
     assert all(order.assigned_vehicle_id == "v1" for order in orders)
     assert vehicle.load_units == 3
+
+
+def test_batch_router_skips_stop_that_would_exceed_capacity():
+    graph = make_graph()
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    origin = Location("a", "zone-a", 0, 0)
+    order = Order("large", origin, Location("c", "zone-c", 0, 2), 4, now, TimeWindow(now, now.replace(hour=2)))
+    vehicle = Vehicle("v1", origin, 3, now, now.replace(hour=2))
+    assert GraphDispatchRouter(graph, "dijkstra").route_batch([order], [vehicle]) == []
+    assert order.assigned_vehicle_id is None
+    assert vehicle.load_units == 0
