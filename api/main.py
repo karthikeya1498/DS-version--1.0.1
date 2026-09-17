@@ -1,4 +1,5 @@
 import os
+import time
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,12 +16,14 @@ from api.routes.health import router as health_router
 from api.routes.optimization import router as optimization_router
 from api.routes.realtime import router as realtime_router
 from api.routes.neural_trace import router as neural_trace_router
+from api.routes.operations import router as operations_router
 from api.routes.routing import router as routing_router
 from api.routes.scenarios import router as scenarios_router
 from api.routes.simulation import router as simulation_router
 from api.routes.traffic import router as traffic_router
 from src.common.config import get_settings
 from src.common.logger import configure_logging
+from src.observability.metrics import metrics_registry
 
 settings = get_settings()
 configure_logging(settings.log_level)
@@ -56,6 +59,7 @@ app.include_router(scenarios_router, prefix="/api/v1")
 app.include_router(traffic_router, prefix="/api/v1")
 app.include_router(realtime_router, prefix="/api/v1")
 app.include_router(neural_trace_router, prefix="/api/v1")
+app.include_router(operations_router, prefix="/api/v1")
 
 
 @app.middleware("http")
@@ -92,7 +96,21 @@ async def tenant_rate_limit_middleware(request, call_next):
                     "X-RateLimit-Remaining": str(decision.remaining),
                 },
             )
-    return await call_next(request)
+    started = time.perf_counter()
+    error = False
+    try:
+        response = await call_next(request)
+        error = response.status_code >= 500
+        return response
+    except Exception:
+        error = True
+        raise
+    finally:
+        metrics_registry.observe(
+            request.url.path,
+            (time.perf_counter() - started) * 1000,
+            error=error,
+        )
 
 
 @app.get("/")
