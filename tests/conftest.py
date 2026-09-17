@@ -5,6 +5,8 @@ Author: Karthikeya
 
 import pytest
 
+pytest_plugins = ["tests.integration.db_fixtures"]
+
 
 @pytest.fixture(autouse=True)
 def isolate_application_environment(monkeypatch):

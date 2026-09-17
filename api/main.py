@@ -1,8 +1,11 @@
 import os
+import time
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from api.routes.architecture import router as architecture_router
+from api.routes.architecture_visibility import router as architecture_visibility_router
 from api.routes.assistant import router as assistant_router
 from api.routes.auth import router as auth_router
 from api.routes.decisions import router as decisions_router
@@ -12,12 +15,15 @@ from api.routes.forecast import router as forecast_router
 from api.routes.health import router as health_router
 from api.routes.optimization import router as optimization_router
 from api.routes.realtime import router as realtime_router
+from api.routes.neural_trace import router as neural_trace_router
+from api.routes.operations import router as operations_router
 from api.routes.routing import router as routing_router
 from api.routes.scenarios import router as scenarios_router
 from api.routes.simulation import router as simulation_router
 from api.routes.traffic import router as traffic_router
 from src.common.config import get_settings
 from src.common.logger import configure_logging
+from src.observability.metrics import metrics_registry
 
 settings = get_settings()
 configure_logging(settings.log_level)
@@ -47,9 +53,13 @@ app.include_router(decisions_router, prefix="/api/v1")
 app.include_router(experiments_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(assistant_router, prefix="/api/v1")
+app.include_router(architecture_router, prefix="/api/v1")
+app.include_router(architecture_visibility_router, prefix="/api/v1")
 app.include_router(scenarios_router, prefix="/api/v1")
 app.include_router(traffic_router, prefix="/api/v1")
 app.include_router(realtime_router, prefix="/api/v1")
+app.include_router(neural_trace_router, prefix="/api/v1")
+app.include_router(operations_router, prefix="/api/v1")
 
 
 @app.middleware("http")
@@ -61,15 +71,9 @@ async def tenant_rate_limit_middleware(request, call_next):
 
     token = request.headers.get("authorization", "").removeprefix("Bearer ").strip()
     tenant = "anonymous"
-    auth_required = (
-        os.getenv(
-            "AUTH_REQUIRED",
-            "true"
-            if os.getenv("APP_ENV", "development").lower() in {"prod", "production"}
-            else "false",
-        ).lower()
-        == "true"
-    )
+    auth_required = os.getenv(
+        "AUTH_REQUIRED", "true" if os.getenv("APP_ENV", "development").lower() in {"prod", "production"} else "false"
+    ).lower() == "true"
     public = request.url.path in {"/", "/api/v1/health", "/api/v1/auth/token"}
     if token:
         try:
@@ -92,7 +96,21 @@ async def tenant_rate_limit_middleware(request, call_next):
                     "X-RateLimit-Remaining": str(decision.remaining),
                 },
             )
-    return await call_next(request)
+    started = time.perf_counter()
+    error = False
+    try:
+        response = await call_next(request)
+        error = response.status_code >= 500
+        return response
+    except Exception:
+        error = True
+        raise
+    finally:
+        metrics_registry.observe(
+            request.url.path,
+            (time.perf_counter() - started) * 1000,
+            error=error,
+        )
 
 
 @app.get("/")

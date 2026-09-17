@@ -7,6 +7,9 @@ CREATE EXTENSION IF NOT EXISTS btree_gist;
 CREATE SCHEMA IF NOT EXISTS optima;
 SET search_path TO optima, public;
 
+-- Phase 1-7 lineage rule: operational results retain tenant, scenario, and time
+-- context so benchmark evidence can be joined back to the decision that produced it.
+
 CREATE TABLE IF NOT EXISTS tenant (
     tenant_id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_key text NOT NULL UNIQUE,
     display_name text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(),

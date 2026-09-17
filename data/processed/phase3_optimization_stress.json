@@ -1,0 +1,66 @@
+{
+  "scenario": {
+    "orders": 50,
+    "fleet_capacity_units_per_vehicle": 50,
+    "vehicles": 10,
+    "graph_nodes": 51,
+    "seed": 42
+  },
+  "methods": [
+    {
+      "method": "greedy",
+      "runtime_ms": 1.46762584336102,
+      "decision_cost": 7532.875,
+      "distance_km": 293.15,
+      "lateness_minutes": 275.0,
+      "served_orders": 10,
+      "unserved_orders": 40,
+      "feasible": true,
+      "routes": 10
+    },
+    {
+      "method": "greedy_2opt",
+      "runtime_ms": 1.375637948513031,
+      "decision_cost": 7532.875,
+      "distance_km": 293.15,
+      "lateness_minutes": 275.0,
+      "served_orders": 10,
+      "unserved_orders": 40,
+      "feasible": true,
+      "routes": 10
+    },
+    {
+      "method": "greedy_3opt",
+      "runtime_ms": 1.469489885494113,
+      "decision_cost": 7532.875,
+      "distance_km": 293.15,
+      "lateness_minutes": 275.0,
+      "served_orders": 10,
+      "unserved_orders": 40,
+      "feasible": true,
+      "routes": 10
+    },
+    {
+      "method": "simulated_annealing",
+      "runtime_ms": 1.561557874083519,
+      "decision_cost": 7532.875,
+      "distance_km": 293.15,
+      "lateness_minutes": 275.0,
+      "served_orders": 10,
+      "unserved_orders": 40,
+      "feasible": true,
+      "routes": 10
+    },
+    {
+      "method": "genetic",
+      "runtime_ms": 1.4008660800755024,
+      "decision_cost": 7532.875,
+      "distance_km": 293.15,
+      "lateness_minutes": 275.0,
+      "served_orders": 10,
+      "unserved_orders": 40,
+      "feasible": true,
+      "routes": 10
+    }
+  ]
+}
