@@ -49,6 +49,45 @@ class GraphDispatchRouter:
         order.assigned_vehicle_id = vehicle.vehicle_id
         return DispatchRoute(vehicle.vehicle_id, order.order_id, result.path, cost, self.algorithm)
 
+    def route_batch(
+        self, orders: list[Order], vehicles: list[Vehicle], timestamp=None
+    ) -> list[DispatchRoute]:
+        """Assign a batch across multiple stops without stopping after one order."""
+        timestamp = timestamp or (orders[0].created_at if orders else None)
+        if timestamp is None:
+            return []
+        reserved = {vehicle.vehicle_id: vehicle.load_units for vehicle in vehicles}
+        cursors = {vehicle.vehicle_id: vehicle.current_location for vehicle in vehicles}
+        routes: list[DispatchRoute] = []
+        solver = astar if self.algorithm == "astar" else dijkstra
+        ordered = sorted(orders, key=lambda item: (-item.priority, item.created_at, item.order_id))
+        for order in ordered:
+            candidates = []
+            for vehicle in vehicles:
+                cursor = cursors[vehicle.vehicle_id]
+                if cursor is None or cursor.node_id not in self.graph.nodes:
+                    continue
+                if vehicle.status == VehicleStatus.OFF_DUTY or not (
+                    vehicle.available_from <= timestamp <= vehicle.available_until
+                ):
+                    continue
+                if reserved[vehicle.vehicle_id] + order.demand_units > vehicle.capacity_units:
+                    continue
+                result = solver(self.graph, cursor.node_id, order.destination.node_id)
+                if result is not None:
+                    candidates.append((result.cost, vehicle.vehicle_id, vehicle, result))
+            if not candidates:
+                continue
+            cost, _, vehicle, result = min(candidates, key=lambda item: (item[0], item[1]))
+            reserved[vehicle.vehicle_id] += order.demand_units
+            cursors[vehicle.vehicle_id] = order.destination
+            vehicle.load_units = reserved[vehicle.vehicle_id]
+            vehicle.status = VehicleStatus.BUSY
+            order.status = order.status.IN_TRANSIT
+            order.assigned_vehicle_id = vehicle.vehicle_id
+            routes.append(DispatchRoute(vehicle.vehicle_id, order.order_id, result.path, cost, self.algorithm))
+        return routes
+
     @staticmethod
     def distance_fallback(order: Order, vehicle: Vehicle) -> float:
         return FleetEngine.distance_km(vehicle.current_location, order.destination)
