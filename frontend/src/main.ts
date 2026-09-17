@@ -6,6 +6,8 @@
  * research lifecycle into one inspectable operator surface.
  */
 import './style.css';
+import './neural-trace.css';
+import { renderNeuralTrace, type NeuralTrace } from './neural-trace';
 
 type SimulationMetrics = { total_orders: number; delivered_orders: number; total_cost: number };
 type SimulationResponse = { metrics: SimulationMetrics; [key: string]: unknown };
@@ -22,6 +24,7 @@ type PhaseStatus = { phase: number; name: string; contract: string; persistence:
 const API_ORIGIN = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:8000';
 const API_URL = `${API_ORIGIN}/api/v1/simulation/run`;
 const ARCHITECTURE_URL = `${API_ORIGIN}/api/v1/architecture/status`;
+const NEURAL_TRACE_URL = `${API_ORIGIN}/api/v1/neural/trace`;
 const TOKEN_URL = `${API_ORIGIN}/api/v1/auth/token`;
 const WS_URL = `${API_ORIGIN.replace(/^http/, 'ws')}/api/v1/ws/traffic`;
 const app = document.querySelector<HTMLDivElement>('#app');
@@ -59,6 +62,8 @@ app.innerHTML = `
       <article class="panel output-panel"><div class="section-heading"><div><p class="panel-kicker">DECISION TRACE</p><h2>Latest response</h2></div></div><pre id="output" aria-live="polite">Ready for a reproducible run.</pre></article>
     </section>
 
+    <section id="neural-trace" class="panel neural-panel"><div class="section-heading"><div><p class="panel-kicker">PHASE 02 / MODEL EVIDENCE</p><h2>Neural Trace</h2></div><span class="live-label"><i></i> live activations</span></div><p class="neural-caption">Real scaled features, learned weights, hidden activations, and the resulting demand prediction.</p><div id="neural-graph" aria-live="polite"><p class="empty-state">Run the seeded scenario to inspect the neural path.</p></div></section>
+
     <section id="telemetry" class="dashboard-grid lower-grid"><article class="panel telemetry-panel"><div class="section-heading"><div><p class="panel-kicker">LIVE TELEMETRY</p><h2>Traffic pressure</h2></div><span id="event-count" class="request-state">0 events</span></div><div class="sparkline" aria-label="Traffic pressure trend"><span style="height:34%"></span><span style="height:48%"></span><span style="height:42%"></span><span style="height:68%"></span><span style="height:57%"></span><span style="height:82%"></span><span style="height:71%"></span><span style="height:94%"></span><span style="height:63%"></span><span style="height:76%"></span><span style="height:54%"></span><span style="height:69%"></span></div><div class="chart-labels"><span>06:00</span><span>12:00</span><span>18:00</span><span>Now</span></div></article><article class="panel live-panel"><div class="section-heading"><div><p class="panel-kicker">ROUTE EVENTS</p><h2>Re-optimization stream</h2></div></div><p id="traffic-empty" class="empty-state">Waiting for authenticated traffic updates from the FastAPI WebSocket.</p><ol id="traffic-events" class="traffic-events" aria-live="polite"></ol></article></section>
 
     <section id="evidence" class="evidence-strip"><div><p class="panel-kicker">PHASE 07 / EVIDENCE</p><h2>Measure the difference, not just the score.</h2><p>Scenario versions, algorithm IDs, seeds, runtime, feasibility, downstream lateness, and explanation grounding travel together into benchmark evidence.</p></div><div class="evidence-stats"><span><b>50</b><small>unit tests</small></span><span><b>28</b><small>SQL tables</small></span><span><b>7</b><small>CI gates</small></span></div></section>
@@ -93,6 +98,7 @@ const trafficEvents = byId<HTMLOListElement>('traffic-events');
 const trafficEmpty = byId<HTMLElement>('traffic-empty');
 const eventCount = byId<HTMLElement>('event-count');
 const themeToggle = byId<HTMLButtonElement>('theme-toggle');
+const neuralGraph = byId<HTMLElement>('neural-graph');
 let receivedEvents = 0;
 let reconnectTimer: number | undefined;
 
@@ -110,7 +116,17 @@ const appendTrafficEvent = (event: TrafficEvent): void => {
 
 const fetchToken = async (): Promise<string> => { const response = await fetch(TOKEN_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: 'dashboard', password: 'development', tenant_id: 'dashboard' }) }); if (!response.ok) throw new Error(`Token request returned HTTP ${response.status}`); return ((await response.json()) as TokenResponse).access_token; };
 const connectTrafficStream = async (): Promise<void> => { try { const token = await fetchToken(); const socket = new WebSocket(`${WS_URL}?token=${encodeURIComponent(token)}`); setConnectionState('Connecting', false); socket.addEventListener('open', () => setConnectionState('Live', true)); socket.addEventListener('message', (message) => { const event = JSON.parse(message.data as string) as TrafficEvent; if (event.event_type === 'route_reoptimization') appendTrafficEvent(event); }); socket.addEventListener('close', () => { setConnectionState('Reconnecting', false); reconnectTimer = window.setTimeout(() => void connectTrafficStream(), 3000); }); socket.addEventListener('error', () => setConnectionState('Unavailable', false)); } catch { setConnectionState('Unavailable', false); reconnectTimer = window.setTimeout(() => void connectTrafficStream(), 3000); } };
+const loadNeuralTrace = async (): Promise<void> => {
+  if (!neuralGraph) return;
+  try {
+    const response = await fetch(NEURAL_TRACE_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ features: [3, 12, 0.8, 4], seed: 42 }) });
+    if (!response.ok) throw new Error(`Neural trace returned HTTP ${response.status}`);
+    renderNeuralTrace(neuralGraph, (await response.json()) as NeuralTrace);
+  } catch {
+    neuralGraph.innerHTML = '<p class="empty-state">Neural trace unavailable; start FastAPI to inspect activations.</p>';
+  }
+};
 const runScenario = async (): Promise<void> => { if (!runButton || !output) return; runButton.disabled = true; setState('Running'); output.textContent = 'Requesting simulation metrics…'; try { const response = await fetch(API_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ seed: 42, duration_hours: 2, zones: 3, vehicles: 4, orders_per_hour: 3 }) }); if (!response.ok) throw new Error(`API returned HTTP ${response.status}`); const data = (await response.json()) as SimulationResponse; renderMetrics(data.metrics); output.textContent = JSON.stringify(data, null, 2); setState('Complete'); } catch (error) { const message = error instanceof Error ? error.message : 'Unknown request failure'; output.textContent = `${message}\n\nStart FastAPI on localhost:8000 and run again.`; setState('Unavailable'); } finally { runButton.disabled = false; } };
 
 const savedTheme = localStorage.getItem('optima-theme'); if (savedTheme === 'light') document.documentElement.dataset.theme = 'light'; themeToggle?.addEventListener('click', () => { const light = document.documentElement.dataset.theme === 'light'; document.documentElement.dataset.theme = light ? 'dark' : 'light'; localStorage.setItem('optima-theme', light ? 'dark' : 'light'); if (themeToggle) themeToggle.textContent = light ? '☼' : '☾'; });
-runButton?.addEventListener('click', () => void runScenario()); void loadArchitectureStatus(); void connectTrafficStream(); window.addEventListener('beforeunload', () => { if (reconnectTimer !== undefined) window.clearTimeout(reconnectTimer); });
+runButton?.addEventListener('click', () => void runScenario()); void loadArchitectureStatus(); void loadNeuralTrace(); void connectTrafficStream(); window.addEventListener('beforeunload', () => { if (reconnectTimer !== undefined) window.clearTimeout(reconnectTimer); });
