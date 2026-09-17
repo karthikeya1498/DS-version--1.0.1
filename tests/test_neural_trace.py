@@ -35,3 +35,10 @@ def test_neural_trace_rejects_non_finite_features() -> None:
     client = TestClient(app)
     response = client.post("/api/v1/neural/trace", json={"features": [1, "NaN"]})
     assert response.status_code == 422
+
+
+def test_neural_trace_is_reproducible_for_same_features_and_seed() -> None:
+    first = build_demo_trace([1.5, 2.5, 3.5], seed=19)
+    second = build_demo_trace([1.5, 2.5, 3.5], seed=19)
+    assert first["prediction"] == second["prediction"]
+    assert first["weights"] == second["weights"]
