@@ -30,6 +30,7 @@ PHASES = [
     PhaseStatus(phase=5, name="Explain", contract="DecisionRecord", persistence="decision lineage and evidence", status="active"),
     PhaseStatus(phase=6, name="Operate", contract="RuntimeTelemetry", persistence="system_event, traffic history", status="active"),
     PhaseStatus(phase=7, name="Prove", contract="BenchmarkEvidence", persistence="benchmark_run and research artifacts", status="ready"),
+    PhaseStatus(phase=8, name="Operate", contract="OperationalIntelligence", persistence="request metrics, readiness, system_event", status="active"),
 ]
 
 
