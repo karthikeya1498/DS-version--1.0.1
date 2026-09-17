@@ -20,3 +20,9 @@ java -cp java-dsa/target/classes com.optimax.dsa.Benchmark
 ```
 
 The benchmark reports shortest-path cost parity and visited-node counts. It does not claim that one algorithm is universally faster.
+
+## Evidence contract
+
+`ShortestPaths.Path` returns the node sequence, total cost, and visited-node count. Dijkstra is the non-negative-weight reference. A* receives an explicit admissible heuristic map, which keeps heuristic calibration visible in experiments rather than hiding it inside the implementation. `ShortestPathsTest` verifies equal costs on a weighted graph and confirms that negative edges are rejected before search.
+
+These results complement the Python routing engine: Python owns the operational dispatch path, while Java provides a compact independent DSA reference suitable for review, teaching, and cross-language benchmark comparison.
