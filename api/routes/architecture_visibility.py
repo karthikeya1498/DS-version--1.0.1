@@ -5,13 +5,23 @@ Author: Karthikeya
 from __future__ import annotations
 
 from fastapi import APIRouter
+from pydantic import BaseModel, ConfigDict
 
 router = APIRouter(prefix="/architecture", tags=["architecture"])
 
 
-@router.get("/implementation-visibility")
-def implementation_visibility() -> dict[str, object]:
-    return {
+class ImplementationVisibility(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    author: str
+    languages: dict[str, object]
+    persistence: dict[str, object]
+    java_dsa: dict[str, object]
+
+
+@router.get("/implementation-visibility", response_model=ImplementationVisibility)
+def implementation_visibility() -> ImplementationVisibility:
+    return ImplementationVisibility.model_validate({
         "author": "Karthikeya",
         "languages": {
             "python": {"role": "ML, simulation, API, optimization, RL", "status": "active"},
@@ -30,4 +40,4 @@ def implementation_visibility() -> dict[str, object]:
             "test_suite": "java-dsa/src/test",
             "build": "mvn -q test",
         },
-    }
+    })
