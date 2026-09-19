@@ -64,7 +64,7 @@ export class HighTechChartEngine {
       svgLegend += `
         <g transform="translate(${padding + sIdx * 140}, 20)">
           <rect width="12" height="12" rx="3" fill="${s.color}" />
-          <text x="18" y="10" fill="#94a3b8" font-size="11" font-family="Inter, sans-serif" font-weight="600">${s.name}</text>
+          <text x="18" y="10" fill="var(--text-subtle)" font-size="11" font-family="Inter, sans-serif" font-weight="600">${s.name}</text>
         </g>
       `;
     });
@@ -74,13 +74,13 @@ export class HighTechChartEngine {
     options.labels.forEach((label, idx) => {
       const x = getX(idx);
       gridSvg += `
-        <line x1="${x}" y1="${padding}" x2="${x}" y2="${height - padding}" stroke="rgba(255,255,255,0.06)" stroke-dasharray="4" />
-        <text x="${x}" y="${height - padding + 18}" fill="#64748b" font-size="10" text-anchor="middle" font-family="Inter, sans-serif">${label}</text>
+        <line x1="${x}" y1="${padding}" x2="${x}" y2="${height - padding}" stroke="var(--border-subtle)" stroke-dasharray="4" />
+        <text x="${x}" y="${height - padding + 18}" fill="var(--text-subtle)" font-size="10" text-anchor="middle" font-family="Inter, sans-serif">${label}</text>
       `;
     });
 
     return `
-      <svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: auto; background: rgba(9,13,22,0.6); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+      <svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: auto; background: var(--bg-deep); border-radius: 12px; border: 1px solid var(--border-subtle);">
         ${svgLegend}
         ${gridSvg}
         ${svgLines}
@@ -117,7 +117,7 @@ export class HighTechChartEngine {
         barsSvg += `
           <rect x="${barX}" y="${barY}" width="${barWidth - 4}" height="${barH}" rx="4" 
                 fill="${s.color}" style="filter: drop-shadow(0px 0px 8px ${s.color}66);" />
-          <text x="${barX + (barWidth - 4) / 2}" y="${barY - 6}" fill="#f8fafc" font-size="9" 
+          <text x="${barX + (barWidth - 4) / 2}" y="${barY - 6}" fill="var(--text-main)" font-size="9" 
                 font-family="Inter, sans-serif" text-anchor="middle" font-weight="700">${v.toFixed(1)}</text>
         `;
       });
@@ -125,7 +125,7 @@ export class HighTechChartEngine {
       legendSvg += `
         <g transform="translate(${padding + sIdx * 120}, 20)">
           <rect width="12" height="12" rx="3" fill="${s.color}" />
-          <text x="18" y="10" fill="#94a3b8" font-size="11" font-family="Inter, sans-serif" font-weight="600">${s.name}</text>
+          <text x="18" y="10" fill="var(--text-subtle)" font-size="11" font-family="Inter, sans-serif" font-weight="600">${s.name}</text>
         </g>
       `;
     });
@@ -135,13 +135,13 @@ export class HighTechChartEngine {
     options.labels.forEach((label, idx) => {
       const groupX = padding + idx * groupWidth + groupWidth / 2;
       labelsSvg += `
-        <text x="${groupX}" y="${height - padding + 20}" fill="#64748b" font-size="11" 
+        <text x="${groupX}" y="${height - padding + 20}" fill="var(--text-subtle)" font-size="11" 
               font-family="Inter, sans-serif" text-anchor="middle" font-weight="600">${label}</text>
       `;
     });
 
     return `
-      <svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: auto; background: rgba(9,13,22,0.6); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+      <svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: auto; background: var(--bg-deep); border-radius: 12px; border: 1px solid var(--border-subtle);">
         ${legendSvg}
         ${barsSvg}
         ${labelsSvg}

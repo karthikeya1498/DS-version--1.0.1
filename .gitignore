@@ -17,4 +17,6 @@ models/*
 mlruns/*
 !data/**/.gitkeep
 !models/**/.gitkeep
-!mlruns/.gitkeep
+node_modules/
+dist/
+.vite/

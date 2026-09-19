@@ -16,7 +16,7 @@ export const PHASE_CARDS: PhaseCardConfig[] = [
   {
     phase: "Phase 01",
     title: "Road Graph & Discrete Ingestion",
-    icon: "🗺️",
+    icon: "01",
     description: "Spatial road graph parser (OSM/Overpass), Min-Heap priority queues, Dijkstra, Segment & Fenwick Trees.",
     backingEngine: "Adjacency-List RoadGraph + Priority Queue",
     tabKey: "graph",
@@ -24,7 +24,7 @@ export const PHASE_CARDS: PhaseCardConfig[] = [
   {
     phase: "Phase 02",
     title: "ML Demand & ETA Forecasting",
-    icon: "📈",
+    icon: "02",
     description: "XGBoost Regressor, Neural MLP, temporal LSTM/GRU, and calibrated late-risk prediction ($P(\\text{late})$).",
     backingEngine: "XGBoost + Platt/Isotonic ECE Calibration",
     tabKey: "forecast",
@@ -32,7 +32,7 @@ export const PHASE_CARDS: PhaseCardConfig[] = [
   {
     phase: "Phase 03",
     title: "Combinatorial VRP Optimization",
-    icon: "🧩",
+    icon: "03",
     description: "0/1 Knapsack DP capacity packing, 2-Opt/3-Opt local search, Simulated Annealing, GA, and Google OR-Tools.",
     backingEngine: "Knapsack DP + Local Edge Exchanges",
     tabKey: "optimization",
@@ -40,7 +40,7 @@ export const PHASE_CARDS: PhaseCardConfig[] = [
   {
     phase: "Phase 04",
     title: "Sequential PPO Reinforcement Learning",
-    icon: "🤖",
+    icon: "04",
     description: "Gym-compatible LogisticsEnv, PPO Actor-Critic policy, tabular Q-Learning, and Deep Q-Networks (DQN).",
     backingEngine: "PPO Policy + Multi-Agent Dispatch State",
     tabKey: "rl",
@@ -48,7 +48,7 @@ export const PHASE_CARDS: PhaseCardConfig[] = [
   {
     phase: "Phase 05",
     title: "Grounded Decision Intelligence",
-    icon: "🛡️",
+    icon: "05",
     description: "Allowlisted tool registry, natural language query parser, counterfactual scenarios, and decision traces.",
     backingEngine: "Guarded Assistant + Structured Evidence",
     tabKey: "assistant",
@@ -56,7 +56,7 @@ export const PHASE_CARDS: PhaseCardConfig[] = [
   {
     phase: "Phase 06",
     title: "Real-Time Telemetry & Control Room",
-    icon: "⚡",
+    icon: "06",
     description: "FastAPI REST API, JWT tenant security, live WebSocket re-optimization stream, and interactive dispatch.",
     backingEngine: "FastAPI + WebSocket Broadcast",
     tabKey: "telemetry",
@@ -64,7 +64,7 @@ export const PHASE_CARDS: PhaseCardConfig[] = [
   {
     phase: "Phase 07",
     title: "Research Decision Sensitivity Lab",
-    icon: "🔬",
+    icon: "07",
     description: "Controlled prediction noise experiments (±5%, ±15%, ±30%) evaluating ML accuracy vs downstream VRP costs.",
     backingEngine: "Sensitivity Perturbation Engine",
     tabKey: "sensitivity",
@@ -72,7 +72,7 @@ export const PHASE_CARDS: PhaseCardConfig[] = [
   {
     phase: "Phase 08",
     title: "DSA High-Performance Core",
-    icon: "⚡",
+    icon: "08",
     description: "Admissible Haversine A*, Segment Tree range speed queries, Binary Indexed Fenwick prefix demand.",
     backingEngine: "Custom C++/Java/Python DSA Layer",
     tabKey: "graph",
@@ -80,7 +80,7 @@ export const PHASE_CARDS: PhaseCardConfig[] = [
   {
     phase: "Phase 09",
     title: "SQL Persistence & Lineage Engine",
-    icon: "🗄️",
+    icon: "09",
     description: "SQLAlchemy ORM repository schema, SQLite & PostgreSQL persistence, full decision lineage audit trail.",
     backingEngine: "SQLAlchemy ORM + PostgreSQL DDL",
     tabKey: "telemetry",
@@ -88,7 +88,7 @@ export const PHASE_CARDS: PhaseCardConfig[] = [
   {
     phase: "Phase 10",
     title: "Production Engineering & Guardrails",
-    icon: "🔒",
+    icon: "10",
     description: "Strict CORS policies, JWT authentication middleware, tenant rate-limiting, and comprehensive pytest suite.",
     backingEngine: "Production Guardrails & Pytest Harness",
     tabKey: "telemetry",

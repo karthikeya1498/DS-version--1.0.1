@@ -1,8 +1,8 @@
 /**
- * OPTIMA-X Research-Grade Multi-Page Control Platform.
+ * OPTIMA-X Executive-Grade Control Platform.
  * Author: Karthikeya
- * Orchestrates Scenario Execution Stepper, 3D Spatial Logistics World,
- * Neural Topology Lab, VRP Solvers, Decision Lineage Explorer, and Research Benchmarks.
+ * Clean Navigation Shell with uniform typography, 2-finger slide/swipe gesture dashboard transitions,
+ * graphical indicator overlay, and downloadable scenario report integration.
  */
 
 import "./style.css";
@@ -17,19 +17,34 @@ import { LogisticsWorld3D } from "./charts/logistics_world_3d";
 
 import logoUrl from "./assets/logo.jpg";
 
-type SidebarPosition = "left" | "right" | "top";
 type ThemeMode = "dark" | "light";
 type PageTab = "scenario" | "world" | "ml" | "optimization" | "decision" | "research";
+type SidebarPos = "left" | "right" | "top";
+
+const PAGES_ORDER: { key: PageTab; label: string }[] = [
+  { key: "scenario", label: "Scenario & Execution" },
+  { key: "world", label: "3D Logistics World" },
+  { key: "ml", label: "ML Prediction Lab" },
+  { key: "optimization", label: "VRP & DSA Lab" },
+  { key: "decision", label: "Decision Audit Trace" },
+  { key: "research", label: "Research Benchmark" },
+];
 
 class OptimaMultiPageApp {
   private apiClient: OptimaApiClient;
   private currentTheme: ThemeMode = "dark";
-  private sidebarPos: SidebarPosition = "left";
+  private sidebarPos: SidebarPos = "top";
   private activePage: PageTab = "scenario";
   private latestResult: SimulationResult | null = null;
   private isSurgeActive: boolean = false;
   private appElement: HTMLElement;
   private worldViz: LogisticsWorld3D | null = null;
+
+  // Gesture Slider tracking
+  private gestureCooldown: boolean = false;
+  private touchStartX: number = 0;
+  private touchStartY: number = 0;
+  private slideDirection: "next" | "prev" | "none" = "none";
 
   constructor() {
     const root = document.querySelector<HTMLElement>("#app");
@@ -42,6 +57,7 @@ class OptimaMultiPageApp {
   private init(): void {
     document.documentElement.setAttribute("data-theme", this.currentTheme);
     this.render();
+    this.setupGestureListeners();
   }
 
   private toggleTheme(): void {
@@ -50,35 +66,93 @@ class OptimaMultiPageApp {
     this.render();
   }
 
-  private setSidebarPos(pos: SidebarPosition): void {
+  private setSidebarPos(pos: SidebarPos): void {
     this.sidebarPos = pos;
     this.render();
   }
 
-  private switchPage(page: PageTab): void {
+  private switchPage(page: PageTab, dir: "next" | "prev" = "next"): void {
+    if (this.activePage === page) return;
+    this.slideDirection = dir;
     this.activePage = page;
     this.render();
   }
 
-  private render(): void {
-    const pages: { key: PageTab; label: string; icon: string }[] = [
-      { key: "scenario", label: "Scenario & Execution", icon: "⚡" },
-      { key: "world", label: "3D Logistics World", icon: "🌐" },
-      { key: "ml", label: "ML Prediction Lab", icon: "🧠" },
-      { key: "optimization", label: "VRP & DSA Lab", icon: "🧩" },
-      { key: "decision", label: "Decision Audit Trace", icon: "🛡️" },
-      { key: "research", label: "Research Benchmark", icon: "🔬" },
-    ];
+  private navigateRelative(delta: number): void {
+    const idx = PAGES_ORDER.findIndex((p) => p.key === this.activePage);
+    if (idx === -1) return;
+    const newIdx = idx + delta;
+    if (newIdx >= 0 && newIdx < PAGES_ORDER.length) {
+      const targetPage = PAGES_ORDER[newIdx].key;
+      const dir = delta > 0 ? "next" : "prev";
+      this.switchPage(targetPage, dir);
+    }
+  }
 
-    const navHtml = pages
-      .map(
-        (p) => `
+  private setupGestureListeners(): void {
+    // 2-finger Trackpad Horizontal Wheel gesture listener
+    window.addEventListener(
+      "wheel",
+      (evt: WheelEvent) => {
+        if (Math.abs(evt.deltaX) > 35 && Math.abs(evt.deltaX) > Math.abs(evt.deltaY) * 1.5) {
+          if (this.gestureCooldown) return;
+          this.gestureCooldown = true;
+          setTimeout(() => (this.gestureCooldown = false), 500);
+
+          if (evt.deltaX > 0) {
+            this.navigateRelative(1);
+          } else {
+            this.navigateRelative(-1);
+          }
+        }
+      },
+      { passive: true }
+    );
+
+    // Touch Swipe gesture listeners
+    window.addEventListener(
+      "touchstart",
+      (evt: TouchEvent) => {
+        if (evt.touches.length > 0) {
+          this.touchStartX = evt.touches[0].clientX;
+          this.touchStartY = evt.touches[0].clientY;
+        }
+      },
+      { passive: true }
+    );
+
+    window.addEventListener(
+      "touchend",
+      (evt: TouchEvent) => {
+        if (evt.changedTouches.length > 0) {
+          const deltaX = evt.changedTouches[0].clientX - this.touchStartX;
+          const deltaY = evt.changedTouches[0].clientY - this.touchStartY;
+
+          if (Math.abs(deltaX) > 60 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+            if (this.gestureCooldown) return;
+            this.gestureCooldown = true;
+            setTimeout(() => (this.gestureCooldown = false), 500);
+
+            if (deltaX < 0) {
+              this.navigateRelative(1);
+            } else {
+              this.navigateRelative(-1);
+            }
+          }
+        }
+      },
+      { passive: true }
+    );
+  }
+
+  private render(): void {
+    const navHtml = PAGES_ORDER.map(
+      (p) => `
       <button class="nav-item ${this.activePage === p.key ? "active" : ""}" data-page="${p.key}">
-        <span>${p.icon}</span> ${p.label}
+        ${p.label}
       </button>
     `
-      )
-      .join("");
+    ).join("");
 
     let pageContentHtml = "";
     switch (this.activePage) {
@@ -102,46 +176,39 @@ class OptimaMultiPageApp {
         break;
     }
 
+    const objClass = this.slideDirection === "next" ? "slide-next" : this.slideDirection === "prev" ? "slide-prev" : "";
+
     this.appElement.innerHTML = `
       <div class="app-shell sidebar-position-${this.sidebarPos}">
         <aside class="sidebar">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <img src="${logoUrl}" alt="OPTIMA-X Logo" class="brand-logo" style="width: 42px; height: 42px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--accent-cyan); box-shadow: 0 0 12px var(--accent-cyan);" />
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <img src="${logoUrl}" alt="OPTIMA-X Logo" class="brand-logo" style="width: 42px; height: 42px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--accent-cyan); box-shadow: 0 0 14px rgba(14, 165, 233, 0.35);" />
             <div>
-              <div style="font-weight: 900; font-size: 1.25rem; letter-spacing: -0.02em;">OPTIMA-X</div>
-              <div style="font-size: 0.72rem; color: var(--text-subtle); font-weight: 600;">Multi-Page Platform</div>
+              <div style="font-weight: 900; font-size: 1.3rem; letter-spacing: -0.02em; color: var(--text-main);">OPTIMA-X</div>
             </div>
           </div>
 
           <nav class="nav-menu">
             ${navHtml}
           </nav>
-
-          <div style="margin-top: auto; padding: 16px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-subtle); font-size: 0.8rem; color: var(--text-muted);">
-            <div>Tenant: <strong>Dashboard Admin</strong></div>
-            <div style="margin-top: 4px;">Backend: <strong style="color: var(--accent-emerald);">http://localhost:8000</strong></div>
-          </div>
         </aside>
 
         <main class="main-content">
           <div class="top-toolbar">
             <div class="tool-group">
-              <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-subtle);">SIDEBAR DOCK:</span>
-              <button class="tool-btn ${this.sidebarPos === "left" ? "active" : ""}" id="dock-left" title="Dock Left">⇇ Left</button>
-              <button class="tool-btn ${this.sidebarPos === "right" ? "active" : ""}" id="dock-right" title="Dock Right">⇉ Right</button>
-              <button class="tool-btn ${this.sidebarPos === "top" ? "active" : ""}" id="dock-top" title="Dock Top">⇈ Top</button>
+              <button class="tool-btn ${this.sidebarPos === "left" ? "active" : ""}" id="btn-pos-left" title="Dock Left">⇇ Left</button>
+              <button class="tool-btn ${this.sidebarPos === "right" ? "active" : ""}" id="btn-pos-right" title="Dock Right">⇉ Right</button>
+              <button class="tool-btn ${this.sidebarPos === "top" ? "active" : ""}" id="btn-pos-top" title="Dock Top">⇈ Top</button>
             </div>
 
             <div class="tool-group">
-              <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-subtle);">THEME:</span>
               <button class="tool-btn" id="btn-theme-toggle">
-                ${this.currentTheme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
+                ${this.currentTheme === "dark" ? "Light Mode" : "Dark Mode"}
               </button>
-              <span class="status-badge"><span class="dot live"></span>FastAPI Live</span>
             </div>
           </div>
 
-          <div class="carousel-viewport">
+          <div class="carousel-viewport ${objClass}">
             ${pageContentHtml}
           </div>
         </main>
@@ -157,7 +224,8 @@ class OptimaMultiPageApp {
           this.latestResult = res;
           this.render();
         },
-        () => this.switchPage("world")
+        () => this.switchPage("world", "next"),
+        this.latestResult
       );
     } else if (this.activePage === "world") {
       this.worldViz = initWorldPageCanvas(this.isSurgeActive, (active) => {
@@ -167,6 +235,8 @@ class OptimaMultiPageApp {
     } else if (this.activePage === "ml") {
       bindMlPageEvents();
     }
+
+    this.slideDirection = "none";
   }
 
   private bindEvents(): void {
@@ -174,17 +244,22 @@ class OptimaMultiPageApp {
     this.appElement.querySelectorAll<HTMLButtonElement>(".nav-item").forEach((btn) => {
       btn.addEventListener("click", () => {
         const page = btn.getAttribute("data-page") as PageTab;
-        if (page) this.switchPage(page);
+        if (page) {
+          const currentIdx = PAGES_ORDER.findIndex((p) => p.key === this.activePage);
+          const targetIdx = PAGES_ORDER.findIndex((p) => p.key === page);
+          const dir = targetIdx >= currentIdx ? "next" : "prev";
+          this.switchPage(page, dir);
+        }
       });
     });
 
-    // Sidebar Docking Buttons
-    document.querySelector("#dock-left")?.addEventListener("click", () => this.setSidebarPos("left"));
-    document.querySelector("#dock-right")?.addEventListener("click", () => this.setSidebarPos("right"));
-    document.querySelector("#dock-top")?.addEventListener("click", () => this.setSidebarPos("top"));
-
     // Theme Switcher
     document.querySelector("#btn-theme-toggle")?.addEventListener("click", () => this.toggleTheme());
+
+    // Sidebar Position Controls
+    document.querySelector("#btn-pos-left")?.addEventListener("click", () => this.setSidebarPos("left"));
+    document.querySelector("#btn-pos-right")?.addEventListener("click", () => this.setSidebarPos("right"));
+    document.querySelector("#btn-pos-top")?.addEventListener("click", () => this.setSidebarPos("top"));
   }
 }
 
