@@ -15,6 +15,8 @@ import { renderDecisionPage } from "./pages/decision_page";
 import { renderResearchPage } from "./pages/research_page";
 import { LogisticsWorld3D } from "./charts/logistics_world_3d";
 
+import logoUrl from "./assets/logo.jpg";
+
 type SidebarPosition = "left" | "right" | "top";
 type ThemeMode = "dark" | "light";
 type PageTab = "scenario" | "world" | "ml" | "optimization" | "decision" | "research";
@@ -103,8 +105,8 @@ class OptimaMultiPageApp {
     this.appElement.innerHTML = `
       <div class="app-shell sidebar-position-${this.sidebarPos}">
         <aside class="sidebar">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 38px; height: 38px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; font-size: 1.1rem; box-shadow: 0 0 14px var(--accent-cyan);">OX</div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="${logoUrl}" alt="OPTIMA-X Logo" class="brand-logo" style="width: 42px; height: 42px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--accent-cyan); box-shadow: 0 0 12px var(--accent-cyan);" />
             <div>
               <div style="font-weight: 900; font-size: 1.25rem; letter-spacing: -0.02em;">OPTIMA-X</div>
               <div style="font-size: 0.72rem; color: var(--text-subtle); font-weight: 600;">Multi-Page Platform</div>
@@ -125,9 +127,9 @@ class OptimaMultiPageApp {
           <div class="top-toolbar">
             <div class="tool-group">
               <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-subtle);">SIDEBAR DOCK:</span>
-              <button class="tool-btn ${this.sidebarPos === "left" ? "active" : ""}" id="dock-left">Left</button>
-              <button class="tool-btn ${this.sidebarPos === "right" ? "active" : ""}" id="dock-right">Right</button>
-              <button class="tool-btn ${this.sidebarPos === "top" ? "active" : ""}" id="dock-top">Top</button>
+              <button class="tool-btn ${this.sidebarPos === "left" ? "active" : ""}" id="dock-left" title="Dock Left">⇇ Left</button>
+              <button class="tool-btn ${this.sidebarPos === "right" ? "active" : ""}" id="dock-right" title="Dock Right">⇉ Right</button>
+              <button class="tool-btn ${this.sidebarPos === "top" ? "active" : ""}" id="dock-top" title="Dock Top">⇈ Top</button>
             </div>
 
             <div class="tool-group">
