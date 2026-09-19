@@ -321,7 +321,7 @@ with network_tab:
                     x=[row.x0, row.x1],
                     y=[row.y0, row.y1],
                     mode="lines",
-                    line=dict(color="rgba(56, 189, 248, 0.3)", width=1.2),
+                    line={"color": "rgba(56, 189, 248, 0.3)", "width": 1.2},
                     hoverinfo="none",
                     showlegend=False,
                 )
@@ -334,7 +334,7 @@ with network_tab:
                 x=node_x,
                 y=node_y,
                 mode="markers",
-                marker=dict(size=8, color="#10b981", line=dict(color="#38bdf8", width=1.5)),
+                marker={"size": 8, "color": "#10b981", "line": {"color": "#38bdf8", "width": 1.5}},
                 name="Road Node Vertices",
             )
         )
@@ -352,7 +352,7 @@ with network_tab:
                     x=[xs[u], xs[v]],
                     y=[ys[u], ys[v]],
                     mode="lines",
-                    line=dict(color="rgba(56, 189, 248, 0.35)", width=2),
+                    line={"color": "rgba(56, 189, 248, 0.35)", "width": 2},
                     hoverinfo="none",
                     showlegend=False,
                 )
@@ -365,8 +365,8 @@ with network_tab:
                 x=[xs[i] for i in route_indices],
                 y=[ys[i] for i in route_indices],
                 mode="lines+markers",
-                line=dict(color="#10b981", width=4),
-                marker=dict(size=12, color="#10b981", symbol="diamond"),
+                line={"color": "#10b981", "width": 4},
+                marker={"size": 12, "color": "#10b981", "symbol": "diamond"},
                 name="A* Haversine Route Path",
             )
         )
@@ -377,10 +377,10 @@ with network_tab:
                 x=xs,
                 y=ys,
                 mode="markers+text",
-                marker=dict(size=14, color="#38bdf8", line=dict(color="#ffffff", width=2)),
+                marker={"size": 14, "color": "#38bdf8", "line": {"color": "#ffffff", "width": 2}},
                 text=labels,
                 textposition="top center",
-                textfont=dict(color="#f8fafc", size=11),
+                textfont={"color": "#f8fafc", "size": 11},
                 name="Network Nodes",
             )
         )
@@ -390,10 +390,10 @@ with network_tab:
         paper_bgcolor="#090d16",
         plot_bgcolor="#090d16",
         height=480,
-        margin=dict(l=20, r=20, t=30, b=20),
-        xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", title="Longitude / X-Coordinate"),
-        yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", title="Latitude / Y-Coordinate"),
-        legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01, bgcolor="rgba(15,23,42,0.8)"),
+        margin={"l": 20, "r": 20, "t": 30, "b": 20},
+        xaxis={"showgrid": True, "gridcolor": "rgba(255,255,255,0.06)", "title": "Longitude / X-Coordinate"},
+        yaxis={"showgrid": True, "gridcolor": "rgba(255,255,255,0.06)", "title": "Latitude / Y-Coordinate"},
+        legend={"yanchor": "top", "y": 0.99, "xanchor": "left", "x": 0.01, "bgcolor": "rgba(15,23,42,0.8)"},
     )
 
     st.plotly_chart(fig, use_container_width=True)
@@ -401,7 +401,7 @@ with network_tab:
     col1, col2, col3 = st.columns(3)
     col1.info(f"Graph Status: **{status.get('graph_built', True)}**")
     col2.info(f"Total Vertices: **{status.get('nodes', n)}**")
-    col3.info(f"Admissible Heuristic: **Haversine Lower Bound**")
+    col3.info("Admissible Heuristic: **Haversine Lower Bound**")
 
 
 # TAB 3: LIVE VEHICLE DISPATCH STATE
@@ -436,8 +436,8 @@ with forecast_tab:
             paper_bgcolor="#090d16",
             plot_bgcolor="#090d16",
             height=320,
-            margin=dict(l=20, r=20, t=30, b=20),
-            legend=dict(bgcolor="rgba(15,23,42,0.8)"),
+            margin={"l": 20, "r": 20, "t": 30, "b": 20},
+            legend={"bgcolor": "rgba(15,23,42,0.8)"},
         )
         st.plotly_chart(fig_ml, use_container_width=True)
 
@@ -449,17 +449,17 @@ with forecast_tab:
         isotonic = [0.11, 0.31, 0.51, 0.69, 0.91]
 
         fig_ece = go.Figure()
-        fig_ece.add_trace(go.Scatter(x=probs, y=ideal, mode="lines", name="Ideal Calibration", line=dict(dash="dash", color="#64748b")))
-        fig_ece.add_trace(go.Scatter(x=probs, y=uncalibrated, mode="lines+markers", name="Uncalibrated", line=dict(color="#ef4444", width=2)))
-        fig_ece.add_trace(go.Scatter(x=probs, y=isotonic, mode="lines+markers", name="Isotonic Calibrated", line=dict(color="#10b981", width=3)))
+        fig_ece.add_trace(go.Scatter(x=probs, y=ideal, mode="lines", name="Ideal Calibration", line={"dash": "dash", "color": "#64748b"}))
+        fig_ece.add_trace(go.Scatter(x=probs, y=uncalibrated, mode="lines+markers", name="Uncalibrated", line={"color": "#ef4444", "width": 2}))
+        fig_ece.add_trace(go.Scatter(x=probs, y=isotonic, mode="lines+markers", name="Isotonic Calibrated", line={"color": "#10b981", "width": 3}))
 
         fig_ece.update_layout(
             template="plotly_dark",
             paper_bgcolor="#090d16",
             plot_bgcolor="#090d16",
             height=320,
-            margin=dict(l=20, r=20, t=30, b=20),
-            legend=dict(bgcolor="rgba(15,23,42,0.8)"),
+            margin={"l": 20, "r": 20, "t": 30, "b": 20},
+            legend={"bgcolor": "rgba(15,23,42,0.8)"},
         )
         st.plotly_chart(fig_ece, use_container_width=True)
 
@@ -474,18 +474,18 @@ with benchmark_tab:
     astar_times = [0.08, 0.32, 1.4, 7.8, 48.2]
 
     fig_bench = go.Figure()
-    fig_bench.add_trace(go.Scatter(x=nodes_scale, y=dijkstra_times, mode="lines+markers", name="Dijkstra O(V log V + E)", line=dict(color="#ef4444", width=3)))
-    fig_bench.add_trace(go.Scatter(x=nodes_scale, y=astar_times, mode="lines+markers", name="Haversine A*", line=dict(color="#10b981", width=3)))
+    fig_bench.add_trace(go.Scatter(x=nodes_scale, y=dijkstra_times, mode="lines+markers", name="Dijkstra O(V log V + E)", line={"color": "#ef4444", "width": 3}))
+    fig_bench.add_trace(go.Scatter(x=nodes_scale, y=astar_times, mode="lines+markers", name="Haversine A*", line={"color": "#10b981", "width": 3}))
 
     fig_bench.update_layout(
         template="plotly_dark",
         paper_bgcolor="#090d16",
         plot_bgcolor="#090d16",
         height=380,
-        margin=dict(l=20, r=20, t=30, b=20),
-        xaxis=dict(title="Graph Size (Vertices)", type="log"),
-        yaxis=dict(title="Runtime (ms)"),
-        legend=dict(bgcolor="rgba(15,23,42,0.8)"),
+        margin={"l": 20, "r": 20, "t": 30, "b": 20},
+        xaxis={"title": "Graph Size (Vertices)", "type": "log"},
+        yaxis={"title": "Runtime (ms)"},
+        legend={"bgcolor": "rgba(15,23,42,0.8)"},
     )
     st.plotly_chart(fig_bench, use_container_width=True)
 
@@ -514,8 +514,8 @@ with optimization_tab:
             paper_bgcolor="#090d16",
             plot_bgcolor="#090d16",
             height=340,
-            margin=dict(l=20, r=20, t=30, b=20),
-            legend=dict(bgcolor="rgba(15,23,42,0.8)"),
+            margin={"l": 20, "r": 20, "t": 30, "b": 20},
+            legend={"bgcolor": "rgba(15,23,42,0.8)"},
         )
         st.plotly_chart(fig_opt, use_container_width=True)
 
@@ -551,19 +551,19 @@ with rl_tab:
     ppo_returns = [-8.0, 2.1, 8.4, 14.2, 18.6]
 
     fig_rl = go.Figure()
-    fig_rl.add_trace(go.Scatter(x=episodes, y=defer_returns, mode="lines", name="All-Defer Baseline", line=dict(color="#ef4444", dash="dash")))
-    fig_rl.add_trace(go.Scatter(x=episodes, y=q_returns, mode="lines+markers", name="Tabular Q-Learning", line=dict(color="#f59e0b")))
-    fig_rl.add_trace(go.Scatter(x=episodes, y=ppo_returns, mode="lines+markers", name="PPO Actor-Critic", line=dict(color="#10b981", width=3)))
+    fig_rl.add_trace(go.Scatter(x=episodes, y=defer_returns, mode="lines", name="All-Defer Baseline", line={"color": "#ef4444", "dash": "dash"}))
+    fig_rl.add_trace(go.Scatter(x=episodes, y=q_returns, mode="lines+markers", name="Tabular Q-Learning", line={"color": "#f59e0b"}))
+    fig_rl.add_trace(go.Scatter(x=episodes, y=ppo_returns, mode="lines+markers", name="PPO Actor-Critic", line={"color": "#10b981", "width": 3}))
 
     fig_rl.update_layout(
         template="plotly_dark",
         paper_bgcolor="#090d16",
         plot_bgcolor="#090d16",
         height=380,
-        margin=dict(l=20, r=20, t=30, b=20),
-        xaxis=dict(title="Training Episodes"),
-        yaxis=dict(title="Mean Episode Return"),
-        legend=dict(bgcolor="rgba(15,23,42,0.8)"),
+        margin={"l": 20, "r": 20, "t": 30, "b": 20},
+        xaxis={"title": "Training Episodes"},
+        yaxis={"title": "Mean Episode Return"},
+        legend={"bgcolor": "rgba(15,23,42,0.8)"},
     )
     st.plotly_chart(fig_rl, use_container_width=True)
 
