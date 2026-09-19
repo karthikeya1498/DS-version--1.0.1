@@ -60,9 +60,9 @@ export function renderScenarioPage(latestResult: SimulationResult | null): strin
   };
 
   return `
-    <div style="display: flex; flex-direction: column; gap: 28px;">
-      <!-- Top Bar: Form Controls -->
-      <div class="form-card" style="width: 100%;">
+    <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 28px;">
+      <!-- Left Column: Form Controls -->
+      <div class="form-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
           <div>
             <span style="font-size: 0.8rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase;">Pipeline Orchestrator</span>
@@ -71,21 +71,21 @@ export function renderScenarioPage(latestResult: SimulationResult | null): strin
           <span class="status-badge"><span class="dot live"></span>Engine Ready</span>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
-          <div class="form-group">
-            <label class="form-label">Online Dataset Source</label>
-            <select id="inp-sc-dataset" class="form-input">
-              <option value="UCI Logistics Orders (Full)">UCI Logistics Orders (Full Extract - 15,000 samples)</option>
-              <option value="NYC TLC Yellow Taxi (2024)">NYC TLC Yellow Taxi Trip Data (2024-01)</option>
-              <option value="NOAA Weather + Multi-Zone Demand">NOAA GHCN Weather + Multi-Zone Demand</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label class="form-label">Online Dataset Source</label>
+          <select id="inp-sc-dataset" class="form-input">
+            <option value="UCI Logistics Orders (Full)">UCI Logistics Orders (Full Extract - 15,000 samples)</option>
+            <option value="NYC TLC Yellow Taxi (2024)">NYC TLC Yellow Taxi Trip Data (2024-01)</option>
+            <option value="NOAA Weather + Multi-Zone Demand">NOAA GHCN Weather + Multi-Zone Demand</option>
+          </select>
+        </div>
 
-          <div class="form-group">
-            <label class="form-label">Scenario Name</label>
-            <input id="inp-sc-name" type="text" class="form-input" value="Hyderabad Delivery Test SCN-00982" />
-          </div>
+        <div class="form-group">
+          <label class="form-label">Scenario Name</label>
+          <input id="inp-sc-name" type="text" class="form-input" value="Hyderabad Delivery Test SCN-00982" />
+        </div>
 
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div class="form-group">
             <label class="form-label">Total Orders</label>
             <input id="inp-sc-orders" type="number" class="form-input" value="50" min="1" max="500" />
@@ -143,25 +143,23 @@ export function renderScenarioPage(latestResult: SimulationResult | null): strin
           </div>
         </div>
 
-        <div style="display: flex; gap: 20px; align-items: center; margin-top: 16px;">
-          <div style="flex: 1; padding: 14px; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent-emerald); border-radius: 12px; font-size: 0.85rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <strong style="color: var(--accent-emerald);">Trained Model Accuracy: 99.18% (R² = 0.9918)</strong>
-              <span class="status-badge" style="border-color: var(--accent-emerald); color: var(--accent-emerald); padding: 2px 8px; font-size: 0.72rem;">Ultra High Precision</span>
-            </div>
-            <div style="margin-top: 6px; color: var(--text-muted); font-size: 0.8rem;">
-              MAE: <strong>1.455 orders/hr</strong> | RMSE: <strong>1.880</strong> | sMAPE: <strong>6.64%</strong> | Samples: <strong>50,428</strong>
-            </div>
+        <div style="margin-top: 16px; padding: 14px; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent-emerald); border-radius: 12px; font-size: 0.85rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="color: var(--accent-emerald);">Trained Model Accuracy: 99.18% (R² = 0.9918)</strong>
+            <span class="status-badge" style="border-color: var(--accent-emerald); color: var(--accent-emerald); padding: 2px 8px; font-size: 0.72rem;">Ultra High Precision</span>
           </div>
-
-          <button id="btn-run-pipeline" class="btn-primary" style="flex: 1; font-size: 1.05rem; padding: 18px;">
-            RUN HIGH-PRECISION PIPELINE
-          </button>
+          <div style="margin-top: 6px; color: var(--text-muted); font-size: 0.8rem;">
+            MAE: <strong>1.455 orders/hr</strong> | RMSE: <strong>1.880</strong> | sMAPE: <strong>6.64%</strong> | Samples: <strong>50,428</strong>
+          </div>
         </div>
+
+        <button id="btn-run-pipeline" class="btn-primary" style="width: 100%; margin-top: 20px; font-size: 1.05rem; padding: 16px;">
+          RUN HIGH-PRECISION PIPELINE
+        </button>
       </div>
 
-      <!-- Bottom Section: Stepper & Active Results Side-by-Side -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 28px;">
+      <!-- Right Column: Stepper & Active Results -->
+      <div>
         <div class="panel-card" style="margin-bottom: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
             <h3 style="margin: 0; font-size: 1.25rem;">12-Stage Execution Stepper</h3>

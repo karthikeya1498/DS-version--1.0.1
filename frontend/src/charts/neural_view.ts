@@ -6,16 +6,16 @@
 
 export class NeuralViewEngine {
   public static renderNeuralTopologySVG(selectedModel: string = "ExtraTrees Regressor"): string {
-    const width = 980;
+    const width = 1100;
     const height = 340;
 
     const inputs = ["Distance", "Traffic", "Weather", "Vehicle Load", "Hour of Day", "Demand"];
     const outputs = ["Predicted ETA (min)", "Late Probability P(late)"];
 
-    const xInput = 210;
-    const xHidden1 = 430;
-    const xHidden2 = 620;
-    const xOutput = 810;
+    const xInput = 200;
+    const xHidden1 = 410;
+    const xHidden2 = 590;
+    const xOutput = 750;
 
     const getInputY = (i: number) => 40 + i * 46;
     const getHidden1Y = (i: number) => 50 + i * 52;

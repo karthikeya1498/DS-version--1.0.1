@@ -18,10 +18,12 @@ import logoUrl from "./assets/logo.jpg";
 
 type ThemeMode = "dark" | "light";
 type PageTab = "scenario" | "world" | "ml" | "optimization" | "decision" | "research";
+type SidebarPos = "left" | "right" | "top";
 
 class OptimaMultiPageApp {
   private apiClient: OptimaApiClient;
   private currentTheme: ThemeMode = "dark";
+  private sidebarPos: SidebarPos = "top";
   private activePage: PageTab = "scenario";
   private latestResult: SimulationResult | null = null;
   private isSurgeActive: boolean = false;
@@ -44,6 +46,11 @@ class OptimaMultiPageApp {
   private toggleTheme(): void {
     this.currentTheme = this.currentTheme === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", this.currentTheme);
+    this.render();
+  }
+
+  private setSidebarPos(pos: SidebarPos): void {
+    this.sidebarPos = pos;
     this.render();
   }
 
@@ -95,8 +102,8 @@ class OptimaMultiPageApp {
     }
 
     this.appElement.innerHTML = `
-      <div class="app-shell">
-        <header class="top-nav-bar">
+      <div class="app-shell sidebar-position-${this.sidebarPos}">
+        <aside class="sidebar">
           <div style="display: flex; align-items: center; gap: 14px;">
             <img src="${logoUrl}" alt="OPTIMA-X Logo" class="brand-logo" style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover; border: 1.5px solid var(--accent-cyan); box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);" />
             <div>
@@ -109,15 +116,30 @@ class OptimaMultiPageApp {
             ${navHtml}
           </nav>
 
-          <div style="display: flex; align-items: center; gap: 14px;">
-            <button class="tool-btn" id="btn-theme-toggle">
-              ${this.currentTheme === "dark" ? "Light Mode" : "Dark Mode"}
-            </button>
-            <span class="status-badge"><span class="dot live"></span>FastAPI Live</span>
+          <div style="font-size: 0.78rem; color: var(--text-subtle); font-weight: 700;">
+            <div>Tenant: <strong style="color: var(--text-main);">Dashboard Admin</strong></div>
+            <div>Backend: <a href="http://localhost:8000" target="_blank" style="color: var(--accent-cyan); text-decoration: none;">http://localhost:8000</a></div>
           </div>
-        </header>
+        </aside>
 
         <main class="main-content">
+          <div class="top-toolbar">
+            <div class="tool-group">
+              <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-subtle); text-transform: uppercase;">SIDEBAR DOCK:</span>
+              <button class="tool-btn ${this.sidebarPos === "left" ? "active" : ""}" id="btn-pos-left">⇇ Left</button>
+              <button class="tool-btn ${this.sidebarPos === "right" ? "active" : ""}" id="btn-pos-right">⇉ Right</button>
+              <button class="tool-btn ${this.sidebarPos === "top" ? "active" : ""}" id="btn-pos-top">⇈ Top</button>
+            </div>
+
+            <div class="tool-group">
+              <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-subtle); text-transform: uppercase;">THEME:</span>
+              <button class="tool-btn" id="btn-theme-toggle">
+                ${this.currentTheme === "dark" ? "Light Mode" : "Dark Mode"}
+              </button>
+              <span class="status-badge"><span class="dot live"></span>FastAPI Live</span>
+            </div>
+          </div>
+
           <div class="carousel-viewport">
             ${pageContentHtml}
           </div>
@@ -157,6 +179,11 @@ class OptimaMultiPageApp {
 
     // Theme Switcher
     document.querySelector("#btn-theme-toggle")?.addEventListener("click", () => this.toggleTheme());
+
+    // Sidebar Position Controls
+    document.querySelector("#btn-pos-left")?.addEventListener("click", () => this.setSidebarPos("left"));
+    document.querySelector("#btn-pos-right")?.addEventListener("click", () => this.setSidebarPos("right"));
+    document.querySelector("#btn-pos-top")?.addEventListener("click", () => this.setSidebarPos("top"));
   }
 }
 
