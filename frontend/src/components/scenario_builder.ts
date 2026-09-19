@@ -96,8 +96,8 @@ export function renderScenarioBuilder(): string {
       </div>
 
       <div style="display: flex; gap: 12px; margin-top: 20px;">
-        <button id="btn-run-optima" class="btn-primary" style="flex: 1;">RUN OPTIMA-X ENGINE 🚀</button>
-        <button id="btn-traffic-surge" class="btn-danger" style="flex: 1;">INJECT TRAFFIC SURGE (+137%) ⚠️</button>
+        <button id="btn-run-optima" class="btn-primary" style="flex: 1;">RUN OPTIMA-X ENGINE</button>
+        <button id="btn-traffic-surge" class="btn-danger" style="flex: 1;">INJECT TRAFFIC SURGE (+137%)</button>
       </div>
     </div>
   `;

@@ -1,4 +1,4 @@
-var D=Object.defineProperty;var $=(o,e,i)=>e in o?D(o,e,{enumerable:!0,configurable:!0,writable:!0,value:i}):o[e]=i;var m=(o,e,i)=>$(o,typeof e!="symbol"?e+"":e,i);(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const r of document.querySelectorAll('link[rel="modulepreload"]'))t(r);new MutationObserver(r=>{for(const s of r)if(s.type==="childList")for(const a of s.addedNodes)a.tagName==="LINK"&&a.rel==="modulepreload"&&t(a)}).observe(document,{childList:!0,subtree:!0});function i(r){const s={};return r.integrity&&(s.integrity=r.integrity),r.referrerPolicy&&(s.referrerPolicy=r.referrerPolicy),r.crossOrigin==="use-credentials"?s.credentials="include":r.crossOrigin==="anonymous"?s.credentials="omit":s.credentials="same-origin",s}function t(r){if(r.ep)return;r.ep=!0;const s=i(r);fetch(r.href,s)}})();class z{constructor(){m(this,"origin");m(this,"tokenUrl");m(this,"simUrl");m(this,"optUrl");m(this,"assistantUrl");m(this,"token",null);this.origin="http://localhost:8000",this.tokenUrl=`${this.origin}/api/v1/auth/token`,this.simUrl=`${this.origin}/api/v1/simulation/run`,this.optUrl=`${this.origin}/api/v1/optimization/demo`,this.assistantUrl=`${this.origin}/api/v1/assistant/query`}async fetchToken(){if(this.token)return this.token;try{const e=await fetch(this.tokenUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:"dashboard",password:"development",tenant_id:"dashboard"})});if(!e.ok)throw new Error(`HTTP ${e.status}`);const i=await e.json();return this.token=i.access_token,i.access_token}catch{return"mock-dev-jwt-token"}}async runSimulation(e){const i=Math.max(1,e.orders_per_hour),t=Math.max(1,e.vehicles),r=`SCN-2026-${Math.floor(1e3+Math.random()*9e3)}`,s=t*15,a=Math.min(i,s),l=Math.max(0,i-a),g=Math.min(a,Math.ceil(a*.04)),v=parseFloat((a*12.5+l*1.5+t*25).toFixed(2));try{if((await fetch(this.simUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(e)})).ok)return{scenario_id:r,simulation:"SUCCESS",nodes:1482,vehicles:t,model:e.model||"ExtraTrees Regressor",routing:e.routing||"Haversine A*",optimization:e.optimization||"0/1 Knapsack DP + 3-Opt",metrics:{total_orders:i,delivered_orders:a,late_deliveries:g,unserved_orders:l,total_cost:v}}}catch{}return{scenario_id:r,simulation:"SUCCESS",nodes:1482,vehicles:t,model:e.model||"ExtraTrees Regressor",routing:e.routing||"Haversine A*",optimization:e.optimization||"0/1 Knapsack DP + 3-Opt",metrics:{total_orders:i,delivered_orders:a,late_deliveries:g,unserved_orders:l,total_cost:v}}}getPredictionMetrics(e){return e.includes("XGBoost")?{name:"XGBoost Regressor v2.1",demandMae:1.42,etaRmse:2.85,ece:.0142,inputs:["Distance","Traffic","Weather","Vehicle Load","Hour of Day","Demand"],hidden:["Tree_1 (Depth 6)","Tree_2 (Depth 6)","Tree_3 (Depth 6)","Gradient Boosting Layer"],outputs:["Predicted ETA (min)","Late Risk P(late)"],lateRiskCurve:[{prob:"0.1",ideal:.1,uncalibrated:.22,calibrated:.11},{prob:"0.3",ideal:.3,uncalibrated:.48,calibrated:.31},{prob:"0.5",ideal:.5,uncalibrated:.72,calibrated:.51},{prob:"0.7",ideal:.7,uncalibrated:.88,calibrated:.69},{prob:"0.9",ideal:.9,uncalibrated:.98,calibrated:.91}]}:e.includes("MLP")?{name:"Neural MLP (64x32 Dense)",demandMae:1.68,etaRmse:3.12,ece:.0185,inputs:["Distance","Traffic","Weather","Vehicle Load","Hour of Day","Demand"],hidden:["Dense 64 (ReLU)","Dense 32 (ReLU)","BatchNorm Layer","Dropout 0.2"],outputs:["Predicted ETA (min)","Late Risk P(late)"],lateRiskCurve:[{prob:"0.1",ideal:.1,uncalibrated:.25,calibrated:.12},{prob:"0.3",ideal:.3,uncalibrated:.51,calibrated:.32},{prob:"0.5",ideal:.5,uncalibrated:.76,calibrated:.52},{prob:"0.7",ideal:.7,uncalibrated:.91,calibrated:.71},{prob:"0.9",ideal:.9,uncalibrated:.99,calibrated:.92}]}:{name:"Temporal LSTM/GRU Model",demandMae:1.35,etaRmse:2.45,ece:.0118,inputs:["Distance","Traffic","Weather","Vehicle Load","Hour of Day","Demand"],hidden:["LSTM Sequence Cell (128)","GRU Recurrent State (64)","Dense Attention Layer"],outputs:["Predicted ETA (min)","Late Risk P(late)"],lateRiskCurve:[{prob:"0.1",ideal:.1,uncalibrated:.19,calibrated:.1},{prob:"0.3",ideal:.3,uncalibrated:.42,calibrated:.3},{prob:"0.5",ideal:.5,uncalibrated:.65,calibrated:.5},{prob:"0.7",ideal:.7,uncalibrated:.82,calibrated:.68},{prob:"0.9",ideal:.9,uncalibrated:.95,calibrated:.9}]}}}const S=[{step:1,label:"01 Loading Scenario",desc:"Ingesting scenario configuration & parameters",status:"pending"},{step:2,label:"02 Validating Data",desc:"Validating order weights, deadlines, and vehicle fleet capacities",status:"pending"},{step:3,label:"03 Building Features",desc:"Leakage-safe temporal feature engineering pipeline",status:"pending"},{step:4,label:"04 Running ML Prediction",desc:"XGBoost & Neural MLP ETA / Late probability estimation",status:"pending"},{step:5,label:"05 Building Spatial Graph",desc:"Constructing adjacency-list RoadGraph with Haversine metrics",status:"pending"},{step:6,label:"06 Assigning Vehicles",desc:"0/1 Knapsack DP parcel capacity bin-packing allocation",status:"pending"},{step:7,label:"07 Building Routes",desc:"Admissible A* shortest path frontier expansion",status:"pending"},{step:8,label:"08 Optimizing Routes",desc:"Combinatorial 3-Opt local search edge-exchanges",status:"pending"},{step:9,label:"09 Validating Constraints",desc:"Verifying weight bounds & delivery time window compliance",status:"pending"},{step:10,label:"10 Simulating Execution",desc:"Priority-queue discrete-event logistics simulator run",status:"pending"},{step:11,label:"11 Recording Decisions",desc:"Creating immutable DecisionRecord audit trail in SQL",status:"pending"},{step:12,label:"12 Generating Explanation",desc:"Evidence-grounded explanation synthesis",status:"pending"}];function L(o){const e=S.map(t=>`
+var P=Object.defineProperty;var $=(i,e,r)=>e in i?P(i,e,{enumerable:!0,configurable:!0,writable:!0,value:r}):i[e]=r;var v=(i,e,r)=>$(i,typeof e!="symbol"?e+"":e,r);(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const a of document.querySelectorAll('link[rel="modulepreload"]'))t(a);new MutationObserver(a=>{for(const l of a)if(l.type==="childList")for(const m of l.addedNodes)m.tagName==="LINK"&&m.rel==="modulepreload"&&t(m)}).observe(document,{childList:!0,subtree:!0});function r(a){const l={};return a.integrity&&(l.integrity=a.integrity),a.referrerPolicy&&(l.referrerPolicy=a.referrerPolicy),a.crossOrigin==="use-credentials"?l.credentials="include":a.crossOrigin==="anonymous"?l.credentials="omit":l.credentials="same-origin",l}function t(a){if(a.ep)return;a.ep=!0;const l=r(a);fetch(a.href,l)}})();class D{constructor(){v(this,"origin");v(this,"tokenUrl");v(this,"simUrl");v(this,"optUrl");v(this,"assistantUrl");v(this,"token",null);this.origin="http://localhost:8000",this.tokenUrl=`${this.origin}/api/v1/auth/token`,this.simUrl=`${this.origin}/api/v1/simulation/run`,this.optUrl=`${this.origin}/api/v1/optimization/demo`,this.assistantUrl=`${this.origin}/api/v1/assistant/query`}async fetchToken(){if(this.token)return this.token;try{const e=await fetch(this.tokenUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:"dashboard",password:"development",tenant_id:"dashboard"})});if(!e.ok)throw new Error(`HTTP ${e.status}`);const r=await e.json();return this.token=r.access_token,r.access_token}catch{return"mock-dev-jwt-token"}}async runSimulation(e){const r=Math.max(1,e.orders_per_hour),t=Math.max(1,e.vehicles),a=`SCN-2026-${Math.floor(1e3+Math.random()*9e3)}`,l=t*15,m=Math.min(r,l),o=Math.max(0,r-m),p=Math.min(m,Math.ceil(m*.04)),c=parseFloat((m*12.5+o*1.5+t*25).toFixed(2));try{if((await fetch(this.simUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(e)})).ok)return{scenario_id:a,simulation:"SUCCESS",nodes:1482,vehicles:t,model:e.model||"ExtraTrees Regressor",routing:e.routing||"Haversine A*",optimization:e.optimization||"0/1 Knapsack DP + 3-Opt",metrics:{total_orders:r,delivered_orders:m,late_deliveries:p,unserved_orders:o,total_cost:c}}}catch{}return{scenario_id:a,simulation:"SUCCESS",nodes:1482,vehicles:t,model:e.model||"ExtraTrees Regressor",routing:e.routing||"Haversine A*",optimization:e.optimization||"0/1 Knapsack DP + 3-Opt",metrics:{total_orders:r,delivered_orders:m,late_deliveries:p,unserved_orders:o,total_cost:c}}}getPredictionMetrics(e){return e.includes("XGBoost")?{name:"XGBoost Regressor v2.1",demandMae:1.42,etaRmse:2.85,ece:.0142,inputs:["Distance","Traffic","Weather","Vehicle Load","Hour of Day","Demand"],hidden:["Tree_1 (Depth 6)","Tree_2 (Depth 6)","Tree_3 (Depth 6)","Gradient Boosting Layer"],outputs:["Predicted ETA (min)","Late Risk P(late)"],lateRiskCurve:[{prob:"0.1",ideal:.1,uncalibrated:.22,calibrated:.11},{prob:"0.3",ideal:.3,uncalibrated:.48,calibrated:.31},{prob:"0.5",ideal:.5,uncalibrated:.72,calibrated:.51},{prob:"0.7",ideal:.7,uncalibrated:.88,calibrated:.69},{prob:"0.9",ideal:.9,uncalibrated:.98,calibrated:.91}]}:e.includes("MLP")?{name:"Neural MLP (64x32 Dense)",demandMae:1.68,etaRmse:3.12,ece:.0185,inputs:["Distance","Traffic","Weather","Vehicle Load","Hour of Day","Demand"],hidden:["Dense 64 (ReLU)","Dense 32 (ReLU)","BatchNorm Layer","Dropout 0.2"],outputs:["Predicted ETA (min)","Late Risk P(late)"],lateRiskCurve:[{prob:"0.1",ideal:.1,uncalibrated:.25,calibrated:.12},{prob:"0.3",ideal:.3,uncalibrated:.51,calibrated:.32},{prob:"0.5",ideal:.5,uncalibrated:.76,calibrated:.52},{prob:"0.7",ideal:.7,uncalibrated:.91,calibrated:.71},{prob:"0.9",ideal:.9,uncalibrated:.99,calibrated:.92}]}:{name:"Temporal LSTM/GRU Model",demandMae:1.35,etaRmse:2.45,ece:.0118,inputs:["Distance","Traffic","Weather","Vehicle Load","Hour of Day","Demand"],hidden:["LSTM Sequence Cell (128)","GRU Recurrent State (64)","Dense Attention Layer"],outputs:["Predicted ETA (min)","Late Risk P(late)"],lateRiskCurve:[{prob:"0.1",ideal:.1,uncalibrated:.19,calibrated:.1},{prob:"0.3",ideal:.3,uncalibrated:.42,calibrated:.3},{prob:"0.5",ideal:.5,uncalibrated:.65,calibrated:.5},{prob:"0.7",ideal:.7,uncalibrated:.82,calibrated:.68},{prob:"0.9",ideal:.9,uncalibrated:.95,calibrated:.9}]}}}const S=[{step:1,label:"01 Loading Scenario",desc:"Ingesting scenario configuration & parameters",status:"pending"},{step:2,label:"02 Validating Data",desc:"Validating order weights, deadlines, and vehicle fleet capacities",status:"pending"},{step:3,label:"03 Building Features",desc:"Leakage-safe temporal feature engineering pipeline",status:"pending"},{step:4,label:"04 Running ML Prediction",desc:"XGBoost & Neural MLP ETA / Late probability estimation",status:"pending"},{step:5,label:"05 Building Spatial Graph",desc:"Constructing adjacency-list RoadGraph with Haversine metrics",status:"pending"},{step:6,label:"06 Assigning Vehicles",desc:"0/1 Knapsack DP parcel capacity bin-packing allocation",status:"pending"},{step:7,label:"07 Building Routes",desc:"Admissible A* shortest path frontier expansion",status:"pending"},{step:8,label:"08 Optimizing Routes",desc:"Combinatorial 3-Opt local search edge-exchanges",status:"pending"},{step:9,label:"09 Validating Constraints",desc:"Verifying weight bounds & delivery time window compliance",status:"pending"},{step:10,label:"10 Simulating Execution",desc:"Priority-queue discrete-event logistics simulator run",status:"pending"},{step:11,label:"11 Recording Decisions",desc:"Creating immutable DecisionRecord audit trail in SQL",status:"pending"},{step:12,label:"12 Generating Explanation",desc:"Evidence-grounded explanation synthesis",status:"pending"}];function z(i){const e=S.map(t=>`
     <div class="stepper-item ${t.status}" id="stage-${t.step}">
       <div class="stepper-icon">${t.status==="completed"?"✓":t.step}</div>
       <div class="stepper-content">
@@ -7,7 +7,7 @@ var D=Object.defineProperty;var $=(o,e,i)=>e in o?D(o,e,{enumerable:!0,configura
       </div>
       <div class="stepper-time" id="stage-time-${t.step}">${t.durationMs?`${t.durationMs}ms`:""}</div>
     </div>
-  `).join(""),i=o||{scenario_id:"SCN-2026-9812",metrics:{total_orders:50,delivered_orders:48,late_deliveries:2,unserved_orders:0,total_cost:412.87}};return`
+  `).join(""),r=i||{scenario_id:"SCN-2026-9812",metrics:{total_orders:50,delivered_orders:48,late_deliveries:2,unserved_orders:0,total_cost:412.87}};return`
     <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 28px;">
       <!-- Left Column: Form Controls -->
       <div class="form-card">
@@ -102,7 +102,7 @@ var D=Object.defineProperty;var $=(o,e,i)=>e in o?D(o,e,{enumerable:!0,configura
         </div>
 
         <button id="btn-run-pipeline" class="btn-primary" style="width: 100%; margin-top: 20px; font-size: 1.05rem; padding: 16px;">
-          RUN HIGH-PRECISION PIPELINE 🚀
+          RUN HIGH-PRECISION PIPELINE
         </button>
       </div>
 
@@ -127,7 +127,7 @@ var D=Object.defineProperty;var $=(o,e,i)=>e in o?D(o,e,{enumerable:!0,configura
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
             <div>
               <span style="font-size: 0.78rem; font-weight: 800; color: var(--accent-emerald); text-transform: uppercase;">Pipeline Run Completed</span>
-              <h3 style="margin: 4px 0 0; font-size: 1.45rem; font-weight: 900;">Scenario ID: ${i.scenario_id}</h3>
+              <h3 style="margin: 4px 0 0; font-size: 1.45rem; font-weight: 900;">Scenario ID: ${r.scenario_id}</h3>
             </div>
             <span class="status-badge" style="border-color: var(--accent-emerald); color: var(--accent-emerald);">Verified Trace</span>
           </div>
@@ -135,159 +135,165 @@ var D=Object.defineProperty;var $=(o,e,i)=>e in o?D(o,e,{enumerable:!0,configura
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; margin-bottom: 20px;">
             <div style="background: var(--bg-deep); padding: 16px; border-radius: 12px; border: 1px solid var(--border-subtle);">
               <div style="font-size: 0.75rem; color: var(--text-subtle); font-weight: 800;">TOTAL ORDERS</div>
-              <div style="font-size: 1.8rem; font-weight: 900; color: var(--accent-cyan);">${i.metrics.total_orders}</div>
+              <div style="font-size: 1.8rem; font-weight: 900; color: var(--accent-cyan);">${r.metrics.total_orders}</div>
             </div>
 
             <div style="background: var(--bg-deep); padding: 16px; border-radius: 12px; border: 1px solid var(--border-subtle);">
               <div style="font-size: 0.75rem; color: var(--text-subtle); font-weight: 800;">DELIVERED</div>
-              <div style="font-size: 1.8rem; font-weight: 900; color: var(--accent-emerald);">${i.metrics.delivered_orders}</div>
+              <div style="font-size: 1.8rem; font-weight: 900; color: var(--accent-emerald);">${r.metrics.delivered_orders}</div>
             </div>
 
             <div style="background: var(--bg-deep); padding: 16px; border-radius: 12px; border: 1px solid var(--border-subtle);">
               <div style="font-size: 0.75rem; color: var(--text-subtle); font-weight: 800;">LATE DELIVERIES</div>
-              <div style="font-size: 1.8rem; font-weight: 900; color: var(--accent-gold);">${i.metrics.late_deliveries}</div>
+              <div style="font-size: 1.8rem; font-weight: 900; color: var(--accent-gold);">${r.metrics.late_deliveries}</div>
             </div>
 
             <div style="background: var(--bg-deep); padding: 16px; border-radius: 12px; border: 1px solid var(--border-subtle);">
               <div style="font-size: 0.75rem; color: var(--text-subtle); font-weight: 800;">UNSERVED</div>
-              <div style="font-size: 1.8rem; font-weight: 900; color: var(--accent-crimson);">${i.metrics.unserved_orders}</div>
+              <div style="font-size: 1.8rem; font-weight: 900; color: var(--accent-crimson);">${r.metrics.unserved_orders}</div>
             </div>
 
             <div style="background: var(--bg-deep); padding: 16px; border-radius: 12px; border: 1px solid var(--border-subtle);">
               <div style="font-size: 0.75rem; color: var(--text-subtle); font-weight: 800;">ROUTING COST</div>
-              <div style="font-size: 1.8rem; font-weight: 900; color: var(--accent-purple);">${i.metrics.total_cost}</div>
+              <div style="font-size: 1.8rem; font-weight: 900; color: var(--accent-purple);">${r.metrics.total_cost}</div>
             </div>
           </div>
 
-          <button id="btn-goto-world" class="btn-primary" style="width: 100%;">VIEW SCENARIO IN 3D LOGISTICS WORLD →</button>
+          <button id="btn-goto-world" class="btn-primary" style="width: 100%;">VIEW SCENARIO IN 3D LOGISTICS WORLD</button>
         </div>
       </div>
     </div>
-  `}function _(o,e,i){var r;const t=document.querySelector("#btn-run-pipeline");t==null||t.addEventListener("click",async()=>{var w,b,p,y,x;t.disabled=!0;const s=Number(((w=document.querySelector("#inp-sc-orders"))==null?void 0:w.value)||50),a=Number(((b=document.querySelector("#inp-sc-vehicles"))==null?void 0:b.value)||10),l=((p=document.querySelector("#inp-model"))==null?void 0:p.value)||"XGBoost Regressor",g=((y=document.querySelector("#inp-routing"))==null?void 0:y.value)||"Haversine A*",v=((x=document.querySelector("#inp-opt"))==null?void 0:x.value)||"0/1 Knapsack DP + 3-Opt";S.forEach(d=>{d.status="pending",d.durationMs=void 0});const n=document.querySelector("#stepper-progress-bar"),f=document.querySelector("#stepper-progress-text");for(let d=0;d<S.length;d++){const c=S[d];c.status="running";const u=document.querySelector(`#stage-${c.step}`);u&&(u.className="stepper-item running"),n&&(n.style.width=`${(d+1)/12*100}%`),f&&(f.textContent=`${d+1} / 12 STAGES`);const E=performance.now();if(await new Promise(k=>setTimeout(k,160)),c.durationMs=Math.round(performance.now()-E+15),c.status="completed",u){u.className="stepper-item completed";const k=u.querySelector(".stepper-icon");k&&(k.textContent="✓");const P=u.querySelector(`#stage-time-${c.step}`);P&&(P.textContent=`${c.durationMs}ms`)}}const h=await o.runSimulation({seed:42,duration_hours:2,zones:3,vehicles:a,orders_per_hour:s,model:l,routing:g,optimization:v});t.disabled=!1,e(h)}),(r=document.querySelector("#btn-goto-world"))==null||r.addEventListener("click",()=>{i()})}class O{constructor(e){m(this,"canvas");m(this,"ctx");m(this,"animFrameId",null);m(this,"isTrafficSurge",!1);m(this,"trafficSurgeEdge",["node_b","node_d"]);m(this,"nodes",new Map([["depot",{id:"depot",label:"Central Depot (A)",x:0,y:0}],["node_b",{id:"node_b",label:"Node B",x:-2,y:3}],["node_c",{id:"node_c",label:"Node C (Alternative)",x:1,y:5}],["node_d",{id:"node_d",label:"Node D (Traffic Zone)",x:3,y:2}],["node_e",{id:"node_e",label:"Node E (Destination)",x:4,y:-2}]]));m(this,"orders",[{id:"O1",weight:30,customer:"Customer A",nodeId:"node_b",delivered:!1},{id:"O2",weight:20,customer:"Customer B",nodeId:"node_c",delivered:!1},{id:"O3",weight:40,customer:"Customer C",nodeId:"node_d",delivered:!1},{id:"O4",weight:10,customer:"Customer D",nodeId:"node_e",delivered:!1},{id:"O5",weight:25,customer:"Customer E",nodeId:"node_b",delivered:!1}]);m(this,"vehicles",[{id:"truck_a",label:"Truck A (100kg)",capacity:100,currentLoad:80,route:["depot","node_b","node_d","node_e"],currentSegIdx:0,segProgress:0,color:"#38bdf8"},{id:"truck_b",label:"Truck B (60kg)",capacity:60,currentLoad:60,route:["depot","node_c","node_e"],currentSegIdx:0,segProgress:.2,color:"#10b981"},{id:"truck_c",label:"Truck C (40kg)",capacity:40,currentLoad:35,route:["depot","node_b","node_e"],currentSegIdx:0,segProgress:.5,color:"#8b5cf6"}]);this.canvas=e;const i=e.getContext("2d");if(!i)throw new Error("Could not get 2D rendering context.");this.ctx=i,this.resizeCanvas(),window.addEventListener("resize",()=>this.resizeCanvas())}resizeCanvas(){const e=this.canvas.parentElement;e&&(this.canvas.width=e.clientWidth*window.devicePixelRatio,this.canvas.height=e.clientHeight*window.devicePixelRatio,this.ctx.scale(window.devicePixelRatio,window.devicePixelRatio)),this.render()}triggerTrafficEvent(){this.isTrafficSurge=!0;const e=this.vehicles.find(i=>i.id==="truck_a");e&&(e.route=["depot","node_b","node_c","node_e"],e.currentSegIdx=1,e.segProgress=0)}resetSimulation(){this.isTrafficSurge=!1;const e=this.vehicles.find(i=>i.id==="truck_a");e&&(e.route=["depot","node_b","node_d","node_e"],e.currentSegIdx=0,e.segProgress=0)}startAnimation(){const e=()=>{this.updateVehiclePositions(),this.render(),this.animFrameId=requestAnimationFrame(e)};this.animFrameId||e()}stopAnimation(){this.animFrameId&&(cancelAnimationFrame(this.animFrameId),this.animFrameId=null)}updateVehiclePositions(){for(const e of this.vehicles)e.segProgress+=.008,e.segProgress>=1&&(e.segProgress=0,e.currentSegIdx=(e.currentSegIdx+1)%(e.route.length-1))}render(){const e=this.canvas.clientWidth,i=this.canvas.clientHeight;this.ctx.clearRect(0,0,e,i);const t=60,r=(a,l)=>({px:t+(a+4)/10*(e-t*2),py:i-(t+(l+4)/10*(i-t*2))}),s=[["depot","node_b"],["node_b","node_c"],["node_b","node_d"],["node_c","node_e"],["node_d","node_e"]];for(const[a,l]of s){const g=this.nodes.get(a),v=this.nodes.get(l);if(g&&v){const n=r(g.x,g.y),f=r(v.x,v.y),h=this.isTrafficSurge&&(a==="node_b"&&l==="node_d"||a==="node_d"&&l==="node_b");this.ctx.beginPath(),this.ctx.moveTo(n.px,n.py),this.ctx.lineTo(f.px,f.py),this.ctx.strokeStyle=h?"#ef4444":"rgba(56, 189, 248, 0.3)",this.ctx.lineWidth=h?4:2,h&&(this.ctx.shadowColor="#ef4444",this.ctx.shadowBlur=12),this.ctx.stroke(),this.ctx.shadowBlur=0}}for(const a of this.vehicles)if(a.route.length>1){const l=a.route[a.currentSegIdx],g=a.route[a.currentSegIdx+1],v=this.nodes.get(l),n=this.nodes.get(g);if(v&&n){const f=r(v.x,v.y),h=r(n.x,n.y),w=f.px+(h.px-f.px)*a.segProgress,b=f.py+(h.py-f.py)*a.segProgress;this.ctx.beginPath(),this.ctx.arc(w,b,10,0,Math.PI*2),this.ctx.fillStyle=a.color,this.ctx.shadowColor=a.color,this.ctx.shadowBlur=16,this.ctx.fill(),this.ctx.shadowBlur=0,this.ctx.fillStyle="#ffffff",this.ctx.font="bold 11px Inter, sans-serif",this.ctx.fillText(`🚚 ${a.id.toUpperCase()}`,w+14,b+4)}}for(const[a,l]of this.nodes){const g=r(l.x,l.y);this.ctx.beginPath(),this.ctx.arc(g.px,g.py,a==="depot"?12:7,0,Math.PI*2),this.ctx.fillStyle=a==="depot"?"#f59e0b":"#10b981",this.ctx.shadowColor=a==="depot"?"#f59e0b":"#10b981",this.ctx.shadowBlur=10,this.ctx.fill(),this.ctx.shadowBlur=0,this.ctx.fillStyle="#f8fafc",this.ctx.font="bold 12px Inter, sans-serif",this.ctx.fillText(l.label,g.px+12,g.py-6)}}}function I(o){return`
+  `}function L(i,e,r){var a;const t=document.querySelector("#btn-run-pipeline");t==null||t.addEventListener("click",async()=>{var y,u,s,E,k;t.disabled=!0;const l=Number(((y=document.querySelector("#inp-sc-orders"))==null?void 0:y.value)||50),m=Number(((u=document.querySelector("#inp-sc-vehicles"))==null?void 0:u.value)||10),o=((s=document.querySelector("#inp-model"))==null?void 0:s.value)||"XGBoost Regressor",p=((E=document.querySelector("#inp-routing"))==null?void 0:E.value)||"Haversine A*",c=((k=document.querySelector("#inp-opt"))==null?void 0:k.value)||"0/1 Knapsack DP + 3-Opt";S.forEach(w=>{w.status="pending",w.durationMs=void 0});const n=document.querySelector("#stepper-progress-bar"),f=document.querySelector("#stepper-progress-text");for(let w=0;w<S.length;w++){const x=S[w];x.status="running";const d=document.querySelector(`#stage-${x.step}`);d&&(d.className="stepper-item running"),n&&(n.style.width=`${(w+1)/12*100}%`),f&&(f.textContent=`${w+1} / 12 STAGES`);const g=performance.now();if(await new Promise(h=>setTimeout(h,160)),x.durationMs=Math.round(performance.now()-g+15),x.status="completed",d){d.className="stepper-item completed";const h=d.querySelector(".stepper-icon");h&&(h.textContent="✓");const R=d.querySelector(`#stage-time-${x.step}`);R&&(R.textContent=`${x.durationMs}ms`)}}const b=await i.runSimulation({seed:42,duration_hours:2,zones:3,vehicles:m,orders_per_hour:l,model:o,routing:p,optimization:c});t.disabled=!1,e(b)}),(a=document.querySelector("#btn-goto-world"))==null||a.addEventListener("click",()=>{r()})}class O{constructor(e){v(this,"canvas");v(this,"ctx");v(this,"animFrameId",null);v(this,"isTrafficSurge",!1);v(this,"trafficSurgeEdge",["node_b","node_d"]);v(this,"nodes",new Map([["depot",{id:"depot",label:"Central Depot (A)",x:0,y:0}],["node_b",{id:"node_b",label:"Node B",x:-2,y:3}],["node_c",{id:"node_c",label:"Node C (Alternative)",x:1,y:5}],["node_d",{id:"node_d",label:"Node D (Traffic Zone)",x:3,y:2}],["node_e",{id:"node_e",label:"Node E (Destination)",x:4,y:-2}]]));v(this,"orders",[{id:"O1",weight:30,customer:"Customer A",nodeId:"node_b",delivered:!1},{id:"O2",weight:20,customer:"Customer B",nodeId:"node_c",delivered:!1},{id:"O3",weight:40,customer:"Customer C",nodeId:"node_d",delivered:!1},{id:"O4",weight:10,customer:"Customer D",nodeId:"node_e",delivered:!1},{id:"O5",weight:25,customer:"Customer E",nodeId:"node_b",delivered:!1}]);v(this,"vehicles",[{id:"truck_a",label:"Truck A (100kg)",capacity:100,currentLoad:80,route:["depot","node_b","node_d","node_e"],currentSegIdx:0,segProgress:0,color:"#38bdf8"},{id:"truck_b",label:"Truck B (60kg)",capacity:60,currentLoad:60,route:["depot","node_c","node_e"],currentSegIdx:0,segProgress:.2,color:"#10b981"},{id:"truck_c",label:"Truck C (40kg)",capacity:40,currentLoad:35,route:["depot","node_b","node_e"],currentSegIdx:0,segProgress:.5,color:"#8b5cf6"}]);this.canvas=e;const r=e.getContext("2d");if(!r)throw new Error("Could not get 2D rendering context.");this.ctx=r,this.resizeCanvas(),window.addEventListener("resize",()=>this.resizeCanvas())}resizeCanvas(){const e=this.canvas.parentElement;e&&(this.canvas.width=e.clientWidth*window.devicePixelRatio,this.canvas.height=e.clientHeight*window.devicePixelRatio,this.ctx.scale(window.devicePixelRatio,window.devicePixelRatio)),this.render()}triggerTrafficEvent(){this.isTrafficSurge=!0;const e=this.vehicles.find(r=>r.id==="truck_a");e&&(e.route=["depot","node_b","node_c","node_e"],e.currentSegIdx=1,e.segProgress=0)}resetSimulation(){this.isTrafficSurge=!1;const e=this.vehicles.find(r=>r.id==="truck_a");e&&(e.route=["depot","node_b","node_d","node_e"],e.currentSegIdx=0,e.segProgress=0)}startAnimation(){const e=()=>{this.updateVehiclePositions(),this.render(),this.animFrameId=requestAnimationFrame(e)};this.animFrameId||e()}stopAnimation(){this.animFrameId&&(cancelAnimationFrame(this.animFrameId),this.animFrameId=null)}updateVehiclePositions(){for(const e of this.vehicles)e.segProgress+=.008,e.segProgress>=1&&(e.segProgress=0,e.currentSegIdx=(e.currentSegIdx+1)%(e.route.length-1))}render(){const e=this.canvas.clientWidth,r=this.canvas.clientHeight;this.ctx.clearRect(0,0,e,r);const t=60,a=(o,p)=>({px:t+(o+4)/10*(e-t*2),py:r-(t+(p+4)/10*(r-t*2))}),l=[["depot","node_b"],["node_b","node_c"],["node_b","node_d"],["node_c","node_e"],["node_d","node_e"]];for(const[o,p]of l){const c=this.nodes.get(o),n=this.nodes.get(p);if(c&&n){const f=a(c.x,c.y),b=a(n.x,n.y),y=this.isTrafficSurge&&(o==="node_b"&&p==="node_d"||o==="node_d"&&p==="node_b");this.ctx.beginPath(),this.ctx.moveTo(f.px,f.py),this.ctx.lineTo(b.px,b.py),this.ctx.strokeStyle=y?"#ef4444":"rgba(56, 189, 248, 0.3)",this.ctx.lineWidth=y?4:2,y&&(this.ctx.shadowColor="#ef4444",this.ctx.shadowBlur=12),this.ctx.stroke(),this.ctx.shadowBlur=0}}for(const o of this.vehicles)if(o.route.length>1){const p=o.route[o.currentSegIdx],c=o.route[o.currentSegIdx+1],n=this.nodes.get(p),f=this.nodes.get(c);if(n&&f){const b=a(n.x,n.y),y=a(f.x,f.y),u=b.px+(y.px-b.px)*o.segProgress,s=b.py+(y.py-b.py)*o.segProgress;this.ctx.beginPath(),this.ctx.arc(u,s,10,0,Math.PI*2),this.ctx.fillStyle=o.color,this.ctx.shadowColor=o.color,this.ctx.shadowBlur=16,this.ctx.fill(),this.ctx.shadowBlur=0,this.ctx.fillStyle="#ffffff",this.ctx.font="bold 11px Inter, sans-serif",this.ctx.fillText(`FLEET ${o.id.toUpperCase()}`,u+14,s+4)}}const m=document.documentElement.getAttribute("data-theme")==="light";for(const[o,p]of this.nodes){const c=a(p.x,p.y);this.ctx.beginPath(),this.ctx.arc(c.px,c.py,o==="depot"?12:7,0,Math.PI*2),this.ctx.fillStyle=o==="depot"?"#f59e0b":"#10b981",this.ctx.shadowColor=o==="depot"?"#f59e0b":"#10b981",this.ctx.shadowBlur=10,this.ctx.fill(),this.ctx.shadowBlur=0,this.ctx.fillStyle=m?"#0f172a":"#f8fafc",this.ctx.font="bold 12px Inter, sans-serif",this.ctx.fillText(p.label,c.px+12,c.py-6)}}}function I(i){return`
     <div style="display: flex; flex-direction: column; gap: 24px;">
       <!-- Header Bar -->
-      <div style="background: var(--bg-surface); backdrop-filter: blur(12px); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 24px; box-shadow: var(--shadow-card); display: flex; justify-content: space-between; align-items: center;">
+      <div style="background: var(--bg-surface); backdrop-filter: blur(16px); border: 1.5px solid var(--border-subtle); border-radius: 20px; padding: 26px; box-shadow: var(--shadow-card); display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <span style="font-size: 0.75rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase;">Spatial Environment</span>
-          <h2 style="margin: 4px 0 0; font-size: 1.6rem;">3D Spatial Logistics World & Live Rerouting</h2>
+          <span style="font-size: 0.82rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase;">Spatial Environment</span>
+          <h2 style="margin: 4px 0 0; font-size: 1.8rem; font-weight: 900; color: var(--text-main);">3D Spatial Logistics World & Live Rerouting</h2>
         </div>
 
-        <div style="display: flex; gap: 12px;">
-          <button id="btn-world-surge" class="btn-danger">INJECT TRAFFIC SURGE (+137%) ⚠️</button>
-          <button id="btn-world-reset" class="btn-secondary">RESET CORRIDOR FLOW 🔄</button>
+        <div style="display: flex; gap: 14px;">
+          <button id="btn-world-surge" class="btn-danger">INJECT TRAFFIC SURGE (+137%)</button>
+          <button id="btn-world-reset" class="btn-secondary">RESET CORRIDOR FLOW</button>
         </div>
       </div>
 
       <!-- Spatial Canvas -->
-      <div class="canvas-container" style="height: 580px;">
+      <div class="canvas-container" style="height: 600px;">
         <div class="canvas-overlay-hud">
           <span class="dot live"></span>
-          <span>Spatial World Canvas · ${o?"⚠️ TRAFFIC SURGE DETECTED ON ROAD B-D (+137%)":"Normal Corridor Flow"}</span>
+          <span>Spatial World Canvas · ${i?"TRAFFIC SURGE DETECTED ON ROAD B-D (+137%)":"Normal Corridor Flow"}</span>
         </div>
         <canvas id="spatial-world-canvas" class="world-canvas"></canvas>
       </div>
 
       <!-- Route Diff Inspector -->
-      ${o?`
-    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 14px; padding: 20px; margin-top: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <span style="font-size: 0.8rem; font-weight: 800; color: var(--accent-crimson); text-transform: uppercase;">⚠️ TRAFFIC SURGE EVENT INJECTED</span>
-        <span class="status-badge" style="border-color: var(--accent-crimson); color: var(--accent-crimson);">Road B-D +137%</span>
+      ${i?`
+    <div style="background: rgba(239, 68, 68, 0.1); border: 1.5px solid rgba(239, 68, 68, 0.4); border-radius: 16px; padding: 22px; margin-top: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <span style="font-size: 0.85rem; font-weight: 800; color: var(--accent-crimson); text-transform: uppercase;">TRAFFIC SURGE EVENT INJECTED</span>
+        <span class="status-badge" style="border-color: var(--accent-crimson); color: var(--accent-crimson);">Road B-D +137% Congestion</span>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-        <div style="background: var(--bg-deep); padding: 14px; border-radius: 10px; border: 1px solid var(--border-subtle);">
-          <div style="font-size: 0.75rem; color: var(--text-subtle); font-weight: 700;">OLD CORRIDOR (BLOCKED BY TRAFFIC)</div>
-          <div style="font-size: 1rem; font-weight: 800; color: var(--accent-crimson); margin: 4px 0;">Depot → Node B → Node D → Node E</div>
-          <div style="font-size: 0.82rem; color: var(--text-muted);">ETA: <strong style="color: var(--accent-crimson);">27 min</strong> · Late Risk: <strong>61%</strong></div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+        <div style="background: var(--bg-deep); padding: 16px; border-radius: 12px; border: 1px solid var(--border-subtle);">
+          <div style="font-size: 0.8rem; color: var(--text-subtle); font-weight: 800;">OLD CORRIDOR (CONGESTED ROAD B-D)</div>
+          <div style="font-size: 1.05rem; font-weight: 900; color: var(--accent-crimson); margin: 6px 0;">Depot → Node B → Node D → Node E</div>
+          <div style="font-size: 0.88rem; color: var(--text-muted);">ETA: <strong style="color: var(--accent-crimson);">27 min</strong> · Late Risk: <strong>61%</strong></div>
         </div>
 
-        <div style="background: var(--bg-deep); padding: 14px; border-radius: 10px; border: 1px solid var(--border-subtle);">
-          <div style="font-size: 0.75rem; color: var(--text-subtle); font-weight: 700;">OPTIMA-X REROUTED PATH (ACTIVE)</div>
-          <div style="font-size: 1rem; font-weight: 800; color: var(--accent-emerald); margin: 4px 0;">Depot → Node B → Node C → Node E</div>
-          <div style="font-size: 0.82rem; color: var(--text-muted);">ETA: <strong style="color: var(--accent-emerald);">21 min (Saved 6 mins)</strong> · Late Risk: <strong>18%</strong></div>
+        <div style="background: var(--bg-deep); padding: 16px; border-radius: 12px; border: 1px solid var(--border-subtle);">
+          <div style="font-size: 0.8rem; color: var(--text-subtle); font-weight: 800;">OPTIMA-X REROUTED PATH (ACTIVE)</div>
+          <div style="font-size: 1.05rem; font-weight: 900; color: var(--accent-emerald); margin: 6px 0;">Depot → Node B → Node C → Node E</div>
+          <div style="font-size: 0.88rem; color: var(--text-muted);">ETA: <strong style="color: var(--accent-emerald);">21 min (Saved 6 mins)</strong> · Late Risk: <strong>18%</strong></div>
         </div>
       </div>
     </div>
   `:`
-    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 20px; margin-top: 20px;">
+    <div style="background: var(--bg-surface); border: 1.5px solid var(--border-subtle); border-radius: 16px; padding: 22px; margin-top: 20px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <span style="font-size: 0.78rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase;">Corridor Flow Status</span>
-          <h4 style="margin: 4px 0 0; font-size: 1.1rem;">Normal Traffic Baseline (1.0x Multiplier)</h4>
+          <span style="font-size: 0.82rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase;">Corridor Flow Status</span>
+          <h4 style="margin: 4px 0 0; font-size: 1.2rem; font-weight: 800; color: var(--text-main);">Normal Traffic Baseline (1.0x Multiplier)</h4>
         </div>
         <span class="status-badge"><span class="dot live"></span>Optimal Corridor Flow</span>
       </div>
     </div>
   `}
     </div>
-  `}function M(o,e){var r,s;const i=document.querySelector("#spatial-world-canvas");if(!i)return null;const t=new O(i);return o&&t.triggerTrafficEvent(),t.startAnimation(),(r=document.querySelector("#btn-world-surge"))==null||r.addEventListener("click",()=>{t.triggerTrafficEvent(),e(!0)}),(s=document.querySelector("#btn-world-reset"))==null||s.addEventListener("click",()=>{t.resetSimulation(),e(!1)}),t}class C{static renderNeuralTopologySVG(e="Neural MLP (64x32)"){const r=["Distance","Traffic","Weather","Vehicle Load","Hour of Day","Demand"],s=["h1_1","h1_2","h1_3","h1_4","h1_5"],a=["h2_1","h2_2","h2_3","h2_4"],l=["Predicted ETA (min)","Late Probability P(late)"],h=d=>40+d*44,w=d=>50+d*50,b=d=>70+d*55,p=d=>100+d*80;let y="";r.forEach((d,c)=>{s.forEach((u,E)=>{y+=`<line x1="60" y1="${h(c)}" x2="220" y2="${w(E)}" stroke="rgba(56, 189, 248, 0.2)" stroke-width="1.2" />`})}),s.forEach((d,c)=>{a.forEach((u,E)=>{y+=`<line x1="220" y1="${w(c)}" x2="400" y2="${b(E)}" stroke="rgba(139, 92, 246, 0.25)" stroke-width="1.2" />`})}),a.forEach((d,c)=>{l.forEach((u,E)=>{y+=`<line x1="400" y1="${b(c)}" x2="560" y2="${p(E)}" stroke="rgba(16, 185, 129, 0.3)" stroke-width="1.8" />`})});let x="";return r.forEach((d,c)=>{const u=h(c);x+=`
-        <circle cx="60" cy="${u}" r="8" fill="#38bdf8" style="filter: drop-shadow(0 0 6px #38bdf8);" />
-        <text x="46" y="${u+4}" fill="#94a3b8" font-size="10" font-weight="700" text-anchor="end">${d}</text>
-      `}),s.forEach((d,c)=>{const u=w(c);x+=`<circle cx="220" cy="${u}" r="7" fill="#8b5cf6" style="filter: drop-shadow(0 0 6px #8b5cf6);" />`}),a.forEach((d,c)=>{const u=b(c);x+=`<circle cx="400" cy="${u}" r="7" fill="#8b5cf6" style="filter: drop-shadow(0 0 6px #8b5cf6);" />`}),l.forEach((d,c)=>{const u=p(c);x+=`
-        <circle cx="560" cy="${u}" r="9" fill="#10b981" style="filter: drop-shadow(0 0 8px #10b981);" />
-        <text x="574" y="${u+4}" fill="#f8fafc" font-size="11" font-weight="800">${d}</text>
+  `}function M(i,e){var a,l;const r=document.querySelector("#spatial-world-canvas");if(!r)return null;const t=new O(r);return i&&t.triggerTrafficEvent(),t.startAnimation(),(a=document.querySelector("#btn-world-surge"))==null||a.addEventListener("click",()=>{t.triggerTrafficEvent(),e(!0)}),(l=document.querySelector("#btn-world-reset"))==null||l.addEventListener("click",()=>{t.resetSimulation(),e(!1)}),t}class C{static renderNeuralTopologySVG(e="ExtraTrees Regressor"){const a=["Distance","Traffic","Weather","Vehicle Load","Hour of Day","Demand"],l=["Predicted ETA (min)","Late Probability P(late)"],n=d=>40+d*46,f=d=>50+d*52,b=d=>70+d*56,y=d=>100+d*90;let u=["H1_1","H1_2","H1_3","H1_4","H1_5"],s=["H2_1","H2_2","H2_3","H2_4"],E="#8b5cf6",k="#38bdf8";e.includes("ExtraTrees")?(u=["Tree_1 (Split)","Tree_2 (Split)","Tree_3 (Split)","Tree_4 (Split)","Tree_5 (Split)"],s=["Leaf_Agg_1","Leaf_Agg_2","Leaf_Agg_3","Leaf_Agg_4"],E="#10b981",k="#38bdf8"):e.includes("XGBoost")?(u=["Gradient_1","Gradient_2","Gradient_3","Gradient_4","Gradient_5"],s=["Residual_Boost_1","Residual_Boost_2","Residual_Boost_3","Residual_Boost_4"],E="#38bdf8",k="#f59e0b"):e.includes("Random Forest")&&(u=["Bootstrap_1","Bootstrap_2","Bootstrap_3","Bootstrap_4","Bootstrap_5"],s=["Forest_Vote_1","Forest_Vote_2","Forest_Vote_3","Forest_Vote_4"],E="#f59e0b",k="#a855f7");let w="";a.forEach((d,g)=>{u.forEach((h,R)=>{w+=`<line x1="210" y1="${n(g)}" x2="430" y2="${f(R)}" stroke="var(--border-glow)" stroke-width="1.3" opacity="0.6" />`})}),u.forEach((d,g)=>{s.forEach((h,R)=>{w+=`<line x1="430" y1="${f(g)}" x2="620" y2="${b(R)}" stroke="var(--accent-purple)" stroke-width="1.3" opacity="0.5" />`})}),s.forEach((d,g)=>{l.forEach((h,R)=>{w+=`<line x1="620" y1="${b(g)}" x2="810" y2="${y(R)}" stroke="var(--accent-emerald)" stroke-width="2.0" opacity="0.7" />`})});let x="";return a.forEach((d,g)=>{const h=n(g);x+=`
+        <circle cx="210" cy="${h}" r="9" fill="var(--accent-cyan)" />
+        <text x="192" y="${h+5}" fill="var(--text-main)" font-size="13" font-weight="800" text-anchor="end">${d}</text>
+      `}),u.forEach((d,g)=>{const h=f(g);x+=`
+        <circle cx="430" cy="${h}" r="8" fill="${E}" />
+        <text x="430" y="${h-12}" fill="var(--text-subtle)" font-size="9" font-weight="700" text-anchor="middle">${d}</text>
+      `}),s.forEach((d,g)=>{const h=b(g);x+=`
+        <circle cx="620" cy="${h}" r="8" fill="${k}" />
+        <text x="620" y="${h-12}" fill="var(--text-subtle)" font-size="9" font-weight="700" text-anchor="middle">${d}</text>
+      `}),l.forEach((d,g)=>{const h=y(g);x+=`
+        <circle cx="810" cy="${h}" r="11" fill="var(--accent-emerald)" />
+        <text x="830" y="${h+5}" fill="var(--text-main)" font-size="14" font-weight="900">${d}</text>
       `}),`
-      <div style="background: rgba(9,13,22,0.8); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <div style="background: var(--bg-surface); border: 1.5px solid var(--border-subtle); border-radius: 20px; padding: 24px;" class="ox-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
           <div>
-            <span style="font-size: 0.75rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase;">Active Model Architecture</span>
-            <h4 style="margin: 4px 0 0; font-size: 1.15rem;">${e}</h4>
+            <span style="font-size: 0.82rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.05em;">ACTIVE MODEL ARCHITECTURE</span>
+            <h4 style="margin: 4px 0 0; font-size: 1.35rem; font-weight: 900; color: var(--text-main);">${e}</h4>
           </div>
-          <span class="status-badge"><span class="dot live"></span>Isotonic ECE Calibrated</span>
+          <span class="status-badge" style="border-color: var(--accent-emerald); color: var(--accent-emerald);"><span class="dot live"></span>Isotonic ECE Calibrated</span>
         </div>
 
-        <svg viewBox="0 0 640 320" style="width: 100%; height: auto;">
-          ${y}
+        <svg viewBox="0 0 980 340" style="width: 100%; height: auto; overflow: visible;">
+          ${w}
           ${x}
         </svg>
 
-        <div style="display: flex; justify-content: space-between; margin-top: 14px; font-size: 0.82rem; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 10px;">
-          <span>Input Features: <strong>12 Lagged Features</strong></span>
-          <span>Hidden Layers: <strong>64 -> 32 Dense Neurons</strong></span>
-          <span>Output: <strong>ETA + Calibrated Risk</strong></span>
+        <div style="display: flex; justify-content: space-between; margin-top: 18px; font-size: 0.88rem; color: var(--text-muted); border-top: 1.5px solid var(--border-subtle); padding-top: 12px; font-weight: 700;">
+          <span>Input Features: <strong>18 Lagged & Rolling Features</strong></span>
+          <span>Architecture: <strong>${e}</strong></span>
+          <span>Output: <strong>ETA Forecast + Calibrated Late Risk</strong></span>
         </div>
       </div>
-    `}}class R{static renderLineChart(e){const l=e.series.flatMap(p=>p.values),g=Math.min(0,...l),v=Math.max(1,...l),n=p=>50+p/Math.max(1,e.labels.length-1)*500,f=p=>250-(p-g)/Math.max(1e-4,v-g)*200;let h="",w="";e.series.forEach((p,y)=>{let x="";p.values.forEach((d,c)=>{const u=n(c),E=f(d);x+=c===0?`M ${u} ${E}`:` L ${u} ${E}`}),h+=`
-        <path d="${x}" fill="none" stroke="${p.color}" stroke-width="3" 
-              style="filter: drop-shadow(0px 0px 8px ${p.color}aa);" />
-      `,p.values.forEach((d,c)=>{const u=n(c),E=f(d);h+=`
-          <circle cx="${u}" cy="${E}" r="4" fill="${p.color}" 
-                  style="filter: drop-shadow(0px 0px 6px ${p.color});" />
-        `}),w+=`
-        <g transform="translate(${50+y*140}, 20)">
-          <rect width="12" height="12" rx="3" fill="${p.color}" />
-          <text x="18" y="10" fill="#94a3b8" font-size="11" font-family="Inter, sans-serif" font-weight="600">${p.name}</text>
+    `}}class T{static renderLineChart(e){const o=e.series.flatMap(s=>s.values),p=Math.min(0,...o),c=Math.max(1,...o),n=s=>50+s/Math.max(1,e.labels.length-1)*500,f=s=>250-(s-p)/Math.max(1e-4,c-p)*200;let b="",y="";e.series.forEach((s,E)=>{let k="";s.values.forEach((w,x)=>{const d=n(x),g=f(w);k+=x===0?`M ${d} ${g}`:` L ${d} ${g}`}),b+=`
+        <path d="${k}" fill="none" stroke="${s.color}" stroke-width="3" 
+              style="filter: drop-shadow(0px 0px 8px ${s.color}aa);" />
+      `,s.values.forEach((w,x)=>{const d=n(x),g=f(w);b+=`
+          <circle cx="${d}" cy="${g}" r="4" fill="${s.color}" 
+                  style="filter: drop-shadow(0px 0px 6px ${s.color});" />
+        `}),y+=`
+        <g transform="translate(${50+E*140}, 20)">
+          <rect width="12" height="12" rx="3" fill="${s.color}" />
+          <text x="18" y="10" fill="var(--text-subtle)" font-size="11" font-family="Inter, sans-serif" font-weight="600">${s.name}</text>
         </g>
-      `});let b="";return e.labels.forEach((p,y)=>{const x=n(y);b+=`
-        <line x1="${x}" y1="50" x2="${x}" y2="250" stroke="rgba(255,255,255,0.06)" stroke-dasharray="4" />
-        <text x="${x}" y="268" fill="#64748b" font-size="10" text-anchor="middle" font-family="Inter, sans-serif">${p}</text>
+      `});let u="";return e.labels.forEach((s,E)=>{const k=n(E);u+=`
+        <line x1="${k}" y1="50" x2="${k}" y2="250" stroke="var(--border-subtle)" stroke-dasharray="4" />
+        <text x="${k}" y="268" fill="var(--text-subtle)" font-size="10" text-anchor="middle" font-family="Inter, sans-serif">${s}</text>
       `}),`
-      <svg viewBox="0 0 600 300" style="width: 100%; height: auto; background: rgba(9,13,22,0.6); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
-        ${w}
+      <svg viewBox="0 0 600 300" style="width: 100%; height: auto; background: var(--bg-deep); border-radius: 12px; border: 1px solid var(--border-subtle);">
+        ${y}
+        ${u}
         ${b}
-        ${h}
       </svg>
-    `}static renderBarChart(e){const l=e.series.flatMap(b=>b.values),g=Math.max(1,...l),v=500/e.labels.length,n=Math.min(30,v*.7/e.series.length);let f="",h="";e.series.forEach((b,p)=>{b.values.forEach((y,x)=>{const c=50+x*v+(v-n*e.series.length)/2+p*n,u=y/g*200,E=250-u;f+=`
-          <rect x="${c}" y="${E}" width="${n-4}" height="${u}" rx="4" 
-                fill="${b.color}" style="filter: drop-shadow(0px 0px 8px ${b.color}66);" />
-          <text x="${c+(n-4)/2}" y="${E-6}" fill="#f8fafc" font-size="9" 
-                font-family="Inter, sans-serif" text-anchor="middle" font-weight="700">${y.toFixed(1)}</text>
-        `}),h+=`
-        <g transform="translate(${50+p*120}, 20)">
-          <rect width="12" height="12" rx="3" fill="${b.color}" />
-          <text x="18" y="10" fill="#94a3b8" font-size="11" font-family="Inter, sans-serif" font-weight="600">${b.name}</text>
+    `}static renderBarChart(e){const o=e.series.flatMap(u=>u.values),p=Math.max(1,...o),c=500/e.labels.length,n=Math.min(30,c*.7/e.series.length);let f="",b="";e.series.forEach((u,s)=>{u.values.forEach((E,k)=>{const x=50+k*c+(c-n*e.series.length)/2+s*n,d=E/p*200,g=250-d;f+=`
+          <rect x="${x}" y="${g}" width="${n-4}" height="${d}" rx="4" 
+                fill="${u.color}" style="filter: drop-shadow(0px 0px 8px ${u.color}66);" />
+          <text x="${x+(n-4)/2}" y="${g-6}" fill="var(--text-main)" font-size="9" 
+                font-family="Inter, sans-serif" text-anchor="middle" font-weight="700">${E.toFixed(1)}</text>
+        `}),b+=`
+        <g transform="translate(${50+s*120}, 20)">
+          <rect width="12" height="12" rx="3" fill="${u.color}" />
+          <text x="18" y="10" fill="var(--text-subtle)" font-size="11" font-family="Inter, sans-serif" font-weight="600">${u.name}</text>
         </g>
-      `});let w="";return e.labels.forEach((b,p)=>{const y=50+p*v+v/2;w+=`
-        <text x="${y}" y="270" fill="#64748b" font-size="11" 
-              font-family="Inter, sans-serif" text-anchor="middle" font-weight="600">${b}</text>
+      `});let y="";return e.labels.forEach((u,s)=>{const E=50+s*c+c/2;y+=`
+        <text x="${E}" y="270" fill="var(--text-subtle)" font-size="11" 
+              font-family="Inter, sans-serif" text-anchor="middle" font-weight="600">${u}</text>
       `}),`
-      <svg viewBox="0 0 600 300" style="width: 100%; height: auto; background: rgba(9,13,22,0.6); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
-        ${h}
+      <svg viewBox="0 0 600 300" style="width: 100%; height: auto; background: var(--bg-deep); border-radius: 12px; border: 1px solid var(--border-subtle);">
+        ${b}
         ${f}
-        ${w}
+        ${y}
       </svg>
-    `}}const T={ExtraTrees:{name:"ExtraTrees Regressor v2.1 (Ensemble)",r2:.9918,accuracy:"99.18%",mae:1.455,rmse:1.88,ece:.0124,samples:"50,428",shap:[{feature:"demand_lag_1 (Previous Hour Demand)",score:.385,color:"var(--accent-cyan)"},{feature:"traffic_idx (Real-Time Congestion)",score:.242,color:"var(--accent-emerald)"},{feature:"demand_rolling_24_mean (24h Moving Mean)",score:.171,color:"var(--accent-purple)"},{feature:"rain_mm (NOAA Precipitation)",score:.112,color:"var(--accent-gold)"}]},"Neural MLP":{name:"Neural MLP Regressor (128x64x32 Dense PyTorch)",r2:.9917,accuracy:"99.17%",mae:1.492,rmse:1.893,ece:.0142,samples:"50,428",shap:[{feature:"demand_lag_1 (Previous Hour Demand)",score:.342,color:"var(--accent-cyan)"},{feature:"traffic_idx (Real-Time Congestion)",score:.228,color:"var(--accent-emerald)"},{feature:"demand_rolling_24_mean (24h Moving Mean)",score:.185,color:"var(--accent-purple)"},{feature:"rain_mm (NOAA Precipitation)",score:.124,color:"var(--accent-gold)"}]},XGBoost:{name:"XGBoost Regressor v2.1 (Extreme Gradient Boosting)",r2:.9915,accuracy:"99.15%",mae:1.505,rmse:1.913,ece:.0135,samples:"50,428",shap:[{feature:"demand_lag_1 (Previous Hour Demand)",score:.36,color:"var(--accent-cyan)"},{feature:"traffic_idx (Real-Time Congestion)",score:.25,color:"var(--accent-emerald)"},{feature:"demand_rolling_24_mean (24h Moving Mean)",score:.165,color:"var(--accent-purple)"},{feature:"rain_mm (NOAA Precipitation)",score:.115,color:"var(--accent-gold)"}]},"Random Forest":{name:"Random Forest Regressor (300 Trees)",r2:.9911,accuracy:"99.11%",mae:1.517,rmse:1.959,ece:.0168,samples:"50,428",shap:[{feature:"demand_lag_1 (Previous Hour Demand)",score:.33,color:"var(--accent-cyan)"},{feature:"traffic_idx (Real-Time Congestion)",score:.21,color:"var(--accent-emerald)"},{feature:"demand_rolling_24_mean (24h Moving Mean)",score:.19,color:"var(--accent-purple)"},{feature:"rain_mm (NOAA Precipitation)",score:.14,color:"var(--accent-gold)"}]}};function N(){const o=T.ExtraTrees;return`
+    `}}const _={ExtraTrees:{name:"ExtraTrees Regressor v2.1 (Ensemble)",r2:.9918,accuracy:"99.18%",mae:1.455,rmse:1.88,ece:.0124,samples:"50,428",shap:[{feature:"demand_lag_1 (Previous Hour Demand)",score:.385,color:"var(--accent-cyan)"},{feature:"traffic_idx (Real-Time Congestion)",score:.242,color:"var(--accent-emerald)"},{feature:"demand_rolling_24_mean (24h Moving Mean)",score:.171,color:"var(--accent-purple)"},{feature:"rain_mm (NOAA Precipitation)",score:.112,color:"var(--accent-gold)"}]},"Neural MLP":{name:"Neural MLP Regressor (128x64x32 Dense PyTorch)",r2:.9917,accuracy:"99.17%",mae:1.492,rmse:1.893,ece:.0142,samples:"50,428",shap:[{feature:"demand_lag_1 (Previous Hour Demand)",score:.342,color:"var(--accent-cyan)"},{feature:"traffic_idx (Real-Time Congestion)",score:.228,color:"var(--accent-emerald)"},{feature:"demand_rolling_24_mean (24h Moving Mean)",score:.185,color:"var(--accent-purple)"},{feature:"rain_mm (NOAA Precipitation)",score:.124,color:"var(--accent-gold)"}]},XGBoost:{name:"XGBoost Regressor v2.1 (Extreme Gradient Boosting)",r2:.9915,accuracy:"99.15%",mae:1.505,rmse:1.913,ece:.0135,samples:"50,428",shap:[{feature:"demand_lag_1 (Previous Hour Demand)",score:.36,color:"var(--accent-cyan)"},{feature:"traffic_idx (Real-Time Congestion)",score:.25,color:"var(--accent-emerald)"},{feature:"demand_rolling_24_mean (24h Moving Mean)",score:.165,color:"var(--accent-purple)"},{feature:"rain_mm (NOAA Precipitation)",score:.115,color:"var(--accent-gold)"}]},"Random Forest":{name:"Random Forest Regressor (300 Trees)",r2:.9911,accuracy:"99.11%",mae:1.517,rmse:1.959,ece:.0168,samples:"50,428",shap:[{feature:"demand_lag_1 (Previous Hour Demand)",score:.33,color:"var(--accent-cyan)"},{feature:"traffic_idx (Real-Time Congestion)",score:.21,color:"var(--accent-emerald)"},{feature:"demand_rolling_24_mean (24h Moving Mean)",score:.19,color:"var(--accent-purple)"},{feature:"rain_mm (NOAA Precipitation)",score:.14,color:"var(--accent-gold)"}]}};function N(){const i=_.ExtraTrees;return`
     <div style="display: flex; flex-direction: column; gap: 28px;">
       <!-- Header -->
       <div style="background: var(--bg-surface); backdrop-filter: blur(16px); border: 1.5px solid var(--border-subtle); border-radius: 20px; padding: 28px; box-shadow: var(--shadow-card); display: flex; justify-content: space-between; align-items: center;">
@@ -311,25 +317,25 @@ var D=Object.defineProperty;var $=(o,e,i)=>e in o?D(o,e,{enumerable:!0,configura
       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
         <div class="hud-card">
           <div class="hud-label">TRAINED MODEL ACCURACY (R²)</div>
-          <div class="hud-val" id="ml-val-accuracy" style="color: var(--accent-emerald);">${o.accuracy}</div>
-          <div class="hud-sub" id="ml-sub-accuracy">R² Score: ${o.r2} (${o.name})</div>
+          <div class="hud-val" id="ml-val-accuracy" style="color: var(--accent-emerald);">${i.accuracy}</div>
+          <div class="hud-sub" id="ml-sub-accuracy">R² Score: ${i.r2} (${i.name})</div>
         </div>
 
         <div class="hud-card">
           <div class="hud-label">MEAN ABSOLUTE ERROR</div>
-          <div class="hud-val" id="ml-val-mae" style="color: var(--accent-cyan);">${o.mae}</div>
+          <div class="hud-val" id="ml-val-mae" style="color: var(--accent-cyan);">${i.mae}</div>
           <div class="hud-sub">MAE Orders / Hour</div>
         </div>
 
         <div class="hud-card">
           <div class="hud-label">ROOT MEAN SQUARED ERROR</div>
-          <div class="hud-val" id="ml-val-rmse" style="color: var(--accent-purple);">${o.rmse}</div>
+          <div class="hud-val" id="ml-val-rmse" style="color: var(--accent-purple);">${i.rmse}</div>
           <div class="hud-sub">RMSE Variance</div>
         </div>
 
         <div class="hud-card">
           <div class="hud-label">CALIBRATION ERROR (ECE)</div>
-          <div class="hud-val" id="ml-val-ece" style="color: var(--accent-gold);">${o.ece}</div>
+          <div class="hud-val" id="ml-val-ece" style="color: var(--accent-gold);">${i.ece}</div>
           <div class="hud-sub">Isotonic Sigmoid Scaled</div>
         </div>
       </div>
@@ -343,14 +349,14 @@ var D=Object.defineProperty;var $=(o,e,i)=>e in o?D(o,e,{enumerable:!0,configura
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 28px;">
         <div style="background: var(--bg-surface); border: 1.5px solid var(--border-subtle); border-radius: 20px; padding: 28px;" class="ox-card">
           <h4 style="margin: 0 0 18px; font-size: 1.25rem; font-weight: 800;">Model Error Comparison (Demand MAE & ETA RMSE)</h4>
-          ${R.renderBarChart({labels:["ExtraTrees","Neural MLP","XGBoost","Random Forest"],series:[{name:"Demand MAE",color:"#38bdf8",values:[1.455,1.492,1.505,1.517]},{name:"ETA RMSE (min)",color:"#8b5cf6",values:[1.88,1.893,1.913,1.959]}]})}
+          ${T.renderBarChart({labels:["ExtraTrees","Neural MLP","XGBoost","Random Forest"],series:[{name:"Demand MAE",color:"#38bdf8",values:[1.455,1.492,1.505,1.517]},{name:"ETA RMSE (min)",color:"#8b5cf6",values:[1.88,1.893,1.913,1.959]}]})}
         </div>
 
         <div style="background: var(--bg-surface); border: 1.5px solid var(--border-subtle); border-radius: 20px; padding: 28px;" class="ox-card">
           <h4 style="margin: 0 0 18px; font-size: 1.25rem; font-weight: 800;">Late-Risk ECE Calibration Curve</h4>
-          ${R.renderLineChart({labels:["0.1","0.3","0.5","0.7","0.9"],series:[{name:"Ideal Calibration",color:"#64748b",values:[.1,.3,.5,.7,.9]},{name:"Uncalibrated Model",color:"#ef4444",values:[.22,.48,.72,.88,.98]},{name:"Isotonic Calibrated",color:"#10b981",values:[.11,.31,.51,.69,.91]}]})}
+          ${T.renderLineChart({labels:["0.1","0.3","0.5","0.7","0.9"],series:[{name:"Ideal Calibration",color:"#64748b",values:[.1,.3,.5,.7,.9]},{name:"Uncalibrated Model",color:"#ef4444",values:[.22,.48,.72,.88,.98]},{name:"Isotonic Calibrated",color:"#10b981",values:[.11,.31,.51,.69,.91]}]})}
           <div style="margin-top: 16px; font-size: 0.9rem; color: var(--text-muted);">
-            Expected Calibration Error (ECE): <strong id="ml-text-ece" style="color: var(--accent-emerald);">${o.ece}</strong> (Isotonic Sigmoid Scaling)
+            Expected Calibration Error (ECE): <strong id="ml-text-ece" style="color: var(--accent-emerald);">${i.ece}</strong> (Isotonic Sigmoid Scaling)
           </div>
         </div>
       </div>
@@ -359,11 +365,11 @@ var D=Object.defineProperty;var $=(o,e,i)=>e in o?D(o,e,{enumerable:!0,configura
       <div style="background: var(--bg-surface); border: 1.5px solid var(--border-subtle); border-radius: 20px; padding: 28px;" class="ox-card">
         <h4 style="margin: 0 0 18px; font-size: 1.25rem; font-weight: 800;">Feature Importance (Gini Impurity Reduction & SHAP Analysis)</h4>
         <div id="ml-shap-container" style="display: flex; flex-direction: column; gap: 14px;">
-          ${A(o.shap)}
+          ${A(i.shap)}
         </div>
       </div>
     </div>
-  `}function A(o){return o.map(e=>`
+  `}function A(i){return i.map(e=>`
     <div>
       <div style="display: flex; justify-content: space-between; font-size: 0.92rem; font-weight: 800; margin-bottom: 6px;">
         <span>${e.feature}</span>
@@ -373,7 +379,7 @@ var D=Object.defineProperty;var $=(o,e,i)=>e in o?D(o,e,{enumerable:!0,configura
         <div style="width: ${e.score*100}%; height: 100%; background: ${e.color}; transition: width 0.4s ease;"></div>
       </div>
     </div>
-  `).join("")}function B(){const o=document.querySelector("#ml-model-select"),e=document.querySelector("#neural-topology-container"),i=document.querySelector("#ml-shap-container"),t=document.querySelector("#ml-val-accuracy"),r=document.querySelector("#ml-sub-accuracy"),s=document.querySelector("#ml-val-mae"),a=document.querySelector("#ml-val-rmse"),l=document.querySelector("#ml-val-ece"),g=document.querySelector("#ml-text-ece");o==null||o.addEventListener("change",()=>{const v=o.value,n=T[v]||T.ExtraTrees;t&&(t.textContent=n.accuracy),r&&(r.textContent=`R² Score: ${n.r2} (${n.name})`),s&&(s.textContent=String(n.mae)),a&&(a.textContent=String(n.rmse)),l&&(l.textContent=String(n.ece)),g&&(g.textContent=String(n.ece)),e&&(e.innerHTML=C.renderNeuralTopologySVG(n.name)),i&&(i.innerHTML=A(n.shap))})}function H(){return`
+  `).join("")}function B(){const i=document.querySelector("#ml-model-select"),e=document.querySelector("#neural-topology-container"),r=document.querySelector("#ml-shap-container"),t=document.querySelector("#ml-val-accuracy"),a=document.querySelector("#ml-sub-accuracy"),l=document.querySelector("#ml-val-mae"),m=document.querySelector("#ml-val-rmse"),o=document.querySelector("#ml-val-ece"),p=document.querySelector("#ml-text-ece");i==null||i.addEventListener("change",()=>{const c=i.value,n=_[c]||_.ExtraTrees;t&&(t.textContent=n.accuracy),a&&(a.textContent=`R² Score: ${n.r2} (${n.name})`),l&&(l.textContent=String(n.mae)),m&&(m.textContent=String(n.rmse)),o&&(o.textContent=String(n.ece)),p&&(p.textContent=String(n.ece)),e&&(e.innerHTML=C.renderNeuralTopologySVG(n.name)),r&&(r.innerHTML=A(n.shap))})}function H(){return`
     <div style="display: flex; flex-direction: column; gap: 24px;">
       <!-- Header -->
       <div style="background: var(--bg-surface); backdrop-filter: blur(12px); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 24px; box-shadow: var(--shadow-card); display: flex; justify-content: space-between; align-items: center;">
@@ -443,12 +449,12 @@ var D=Object.defineProperty;var $=(o,e,i)=>e in o?D(o,e,{enumerable:!0,configura
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
         <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 24px;">
           <h4 style="margin: 0 0 16px; font-size: 1.15rem;">VRP Solvers Objective Cost vs Runtime</h4>
-          ${R.renderBarChart({labels:["Greedy DP","2-Opt Local","3-Opt Search","Simulated Anneal","Genetic Algorithm"],series:[{name:"Objective Cost",color:"#f59e0b",values:[485.2,412.5,389.1,375.4,368.2]},{name:"Runtime (ms)",color:"#38bdf8",values:[8.5,24.2,68,145,290]}]})}
+          ${T.renderBarChart({labels:["Greedy DP","2-Opt Local","3-Opt Search","Simulated Anneal","Genetic Algorithm"],series:[{name:"Objective Cost",color:"#f59e0b",values:[485.2,412.5,389.1,375.4,368.2]},{name:"Runtime (ms)",color:"#38bdf8",values:[8.5,24.2,68,145,290]}]})}
         </div>
 
         <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 24px;">
           <h4 style="margin: 0 0 16px; font-size: 1.15rem;">Dijkstra vs Haversine A* Nodes Expanded</h4>
-          ${R.renderLineChart({labels:["10 Nodes","50 Nodes","200 Nodes","1000 Nodes","5000 Nodes"],series:[{name:"Dijkstra (O(V log V + E))",color:"#ef4444",values:[12,58,240,1280,6400]},{name:"Haversine A*",color:"#10b981",values:[8,24,85,340,1420]}]})}
+          ${T.renderLineChart({labels:["10 Nodes","50 Nodes","200 Nodes","1000 Nodes","5000 Nodes"],series:[{name:"Dijkstra (O(V log V + E))",color:"#ef4444",values:[12,58,240,1280,6400]},{name:"Haversine A*",color:"#10b981",values:[8,24,85,340,1420]}]})}
         </div>
       </div>
     </div>
@@ -655,52 +661,37 @@ var D=Object.defineProperty;var $=(o,e,i)=>e in o?D(o,e,{enumerable:!0,configura
         </div>
       </div>
     </div>
-  `}const U="/assets/logo-CNUQYxtU.jpg";class j{constructor(){m(this,"apiClient");m(this,"currentTheme","dark");m(this,"sidebarPos","left");m(this,"activePage","scenario");m(this,"latestResult",null);m(this,"isSurgeActive",!1);m(this,"appElement");m(this,"worldViz",null);const e=document.querySelector("#app");if(!e)throw new Error("#app element not found");this.appElement=e,this.apiClient=new z,this.init()}init(){document.documentElement.setAttribute("data-theme",this.currentTheme),this.render()}toggleTheme(){this.currentTheme=this.currentTheme==="dark"?"light":"dark",document.documentElement.setAttribute("data-theme",this.currentTheme),this.render()}setSidebarPos(e){this.sidebarPos=e,this.render()}switchPage(e){this.activePage=e,this.render()}render(){const i=[{key:"scenario",label:"Scenario & Execution",icon:"⚡"},{key:"world",label:"3D Logistics World",icon:"🌐"},{key:"ml",label:"ML Prediction Lab",icon:"🧠"},{key:"optimization",label:"VRP & DSA Lab",icon:"🧩"},{key:"decision",label:"Decision Audit Trace",icon:"🛡️"},{key:"research",label:"Research Benchmark",icon:"🔬"}].map(r=>`
-      <button class="nav-item ${this.activePage===r.key?"active":""}" data-page="${r.key}">
-        <span>${r.icon}</span> ${r.label}
+  `}const U="/assets/logo-CNUQYxtU.jpg";class j{constructor(){v(this,"apiClient");v(this,"currentTheme","dark");v(this,"activePage","scenario");v(this,"latestResult",null);v(this,"isSurgeActive",!1);v(this,"appElement");v(this,"worldViz",null);const e=document.querySelector("#app");if(!e)throw new Error("#app element not found");this.appElement=e,this.apiClient=new D,this.init()}init(){document.documentElement.setAttribute("data-theme",this.currentTheme),this.render()}toggleTheme(){this.currentTheme=this.currentTheme==="dark"?"light":"dark",document.documentElement.setAttribute("data-theme",this.currentTheme),this.render()}switchPage(e){this.activePage=e,this.render()}render(){const r=[{key:"scenario",label:"Scenario & Execution"},{key:"world",label:"3D Logistics World"},{key:"ml",label:"ML Prediction Lab"},{key:"optimization",label:"VRP & DSA Lab"},{key:"decision",label:"Decision Audit Trace"},{key:"research",label:"Research Benchmark"}].map(a=>`
+      <button class="nav-item ${this.activePage===a.key?"active":""}" data-page="${a.key}">
+        ${a.label}
       </button>
-    `).join("");let t="";switch(this.activePage){case"scenario":t=L(this.latestResult);break;case"world":t=I(this.isSurgeActive);break;case"ml":t=N();break;case"optimization":t=H();break;case"decision":t=V();break;case"research":t=G();break}this.appElement.innerHTML=`
-      <div class="app-shell sidebar-position-${this.sidebarPos}">
-        <aside class="sidebar">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <img src="${U}" alt="OPTIMA-X Logo" class="brand-logo" style="width: 42px; height: 42px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--accent-cyan); box-shadow: 0 0 12px var(--accent-cyan);" />
+    `).join("");let t="";switch(this.activePage){case"scenario":t=z(this.latestResult);break;case"world":t=I(this.isSurgeActive);break;case"ml":t=N();break;case"optimization":t=H();break;case"decision":t=V();break;case"research":t=G();break}this.appElement.innerHTML=`
+      <div class="app-shell">
+        <header class="top-nav-bar">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <img src="${U}" alt="OPTIMA-X Logo" class="brand-logo" style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover; border: 1.5px solid var(--accent-cyan); box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);" />
             <div>
-              <div style="font-weight: 900; font-size: 1.25rem; letter-spacing: -0.02em;">OPTIMA-X</div>
-              <div style="font-size: 0.72rem; color: var(--text-subtle); font-weight: 600;">Multi-Page Platform</div>
+              <div style="font-weight: 900; font-size: 1.35rem; letter-spacing: -0.02em; color: var(--text-main);">OPTIMA-X</div>
+              <div style="font-size: 0.76rem; color: var(--text-subtle); font-weight: 700;">Multi-Page Platform</div>
             </div>
           </div>
 
           <nav class="nav-menu">
-            ${i}
+            ${r}
           </nav>
 
-          <div style="margin-top: auto; padding: 16px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-subtle); font-size: 0.8rem; color: var(--text-muted);">
-            <div>Tenant: <strong>Dashboard Admin</strong></div>
-            <div style="margin-top: 4px;">Backend: <strong style="color: var(--accent-emerald);">http://localhost:8000</strong></div>
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <button class="tool-btn" id="btn-theme-toggle">
+              ${this.currentTheme==="dark"?"Light Mode":"Dark Mode"}
+            </button>
+            <span class="status-badge"><span class="dot live"></span>FastAPI Live</span>
           </div>
-        </aside>
+        </header>
 
         <main class="main-content">
-          <div class="top-toolbar">
-            <div class="tool-group">
-              <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-subtle);">SIDEBAR DOCK:</span>
-              <button class="tool-btn ${this.sidebarPos==="left"?"active":""}" id="dock-left" title="Dock Left">⇇ Left</button>
-              <button class="tool-btn ${this.sidebarPos==="right"?"active":""}" id="dock-right" title="Dock Right">⇉ Right</button>
-              <button class="tool-btn ${this.sidebarPos==="top"?"active":""}" id="dock-top" title="Dock Top">⇈ Top</button>
-            </div>
-
-            <div class="tool-group">
-              <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-subtle);">THEME:</span>
-              <button class="tool-btn" id="btn-theme-toggle">
-                ${this.currentTheme==="dark"?"☀️ Light Mode":"🌙 Dark Mode"}
-              </button>
-              <span class="status-badge"><span class="dot live"></span>FastAPI Live</span>
-            </div>
-          </div>
-
           <div class="carousel-viewport">
             ${t}
           </div>
         </main>
       </div>
-    `,this.bindEvents(),this.activePage==="scenario"?_(this.apiClient,r=>{this.latestResult=r,this.render()},()=>this.switchPage("world")):this.activePage==="world"?this.worldViz=M(this.isSurgeActive,r=>{this.isSurgeActive=r,this.render()}):this.activePage==="ml"&&B()}bindEvents(){var e,i,t,r;this.appElement.querySelectorAll(".nav-item").forEach(s=>{s.addEventListener("click",()=>{const a=s.getAttribute("data-page");a&&this.switchPage(a)})}),(e=document.querySelector("#dock-left"))==null||e.addEventListener("click",()=>this.setSidebarPos("left")),(i=document.querySelector("#dock-right"))==null||i.addEventListener("click",()=>this.setSidebarPos("right")),(t=document.querySelector("#dock-top"))==null||t.addEventListener("click",()=>this.setSidebarPos("top")),(r=document.querySelector("#btn-theme-toggle"))==null||r.addEventListener("click",()=>this.toggleTheme())}}new j;
+    `,this.bindEvents(),this.activePage==="scenario"?L(this.apiClient,a=>{this.latestResult=a,this.render()},()=>this.switchPage("world")):this.activePage==="world"?this.worldViz=M(this.isSurgeActive,a=>{this.isSurgeActive=a,this.render()}):this.activePage==="ml"&&B()}bindEvents(){var e;this.appElement.querySelectorAll(".nav-item").forEach(r=>{r.addEventListener("click",()=>{const t=r.getAttribute("data-page");t&&this.switchPage(t)})}),(e=document.querySelector("#btn-theme-toggle"))==null||e.addEventListener("click",()=>this.toggleTheme())}}new j;

@@ -223,12 +223,13 @@ export class LogisticsWorld3D {
           // Vehicle Label
           this.ctx.fillStyle = "#ffffff";
           this.ctx.font = "bold 11px Inter, sans-serif";
-          this.ctx.fillText(`🚚 ${v.id.toUpperCase()}`, vx + 14, vy + 4);
+          this.ctx.fillText(`FLEET ${v.id.toUpperCase()}`, vx + 14, vy + 4);
         }
       }
     }
 
     // 3. Draw Nodes & Orders
+    const isLight = document.documentElement.getAttribute("data-theme") === "light";
     for (const [id, node] of this.nodes) {
       const p = project(node.x, node.y);
 
@@ -240,7 +241,7 @@ export class LogisticsWorld3D {
       this.ctx.fill();
       this.ctx.shadowBlur = 0;
 
-      this.ctx.fillStyle = "#f8fafc";
+      this.ctx.fillStyle = isLight ? "#0f172a" : "#f8fafc";
       this.ctx.font = "bold 12px Inter, sans-serif";
       this.ctx.fillText(node.label, p.px + 12, p.py - 6);
     }

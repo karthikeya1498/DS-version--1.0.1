@@ -1,8 +1,7 @@
 /**
- * OPTIMA-X Research-Grade Multi-Page Control Platform.
+ * OPTIMA-X Executive-Grade Control Platform.
  * Author: Karthikeya
- * Orchestrates Scenario Execution Stepper, 3D Spatial Logistics World,
- * Neural Topology Lab, VRP Solvers, Decision Lineage Explorer, and Research Benchmarks.
+ * Clean Top Header Navigation Shell with zero emoji fluff, professional typography, and dynamic multi-page state sync.
  */
 
 import "./style.css";
@@ -17,14 +16,12 @@ import { LogisticsWorld3D } from "./charts/logistics_world_3d";
 
 import logoUrl from "./assets/logo.jpg";
 
-type SidebarPosition = "left" | "right" | "top";
 type ThemeMode = "dark" | "light";
 type PageTab = "scenario" | "world" | "ml" | "optimization" | "decision" | "research";
 
 class OptimaMultiPageApp {
   private apiClient: OptimaApiClient;
   private currentTheme: ThemeMode = "dark";
-  private sidebarPos: SidebarPosition = "left";
   private activePage: PageTab = "scenario";
   private latestResult: SimulationResult | null = null;
   private isSurgeActive: boolean = false;
@@ -50,31 +47,26 @@ class OptimaMultiPageApp {
     this.render();
   }
 
-  private setSidebarPos(pos: SidebarPosition): void {
-    this.sidebarPos = pos;
-    this.render();
-  }
-
   private switchPage(page: PageTab): void {
     this.activePage = page;
     this.render();
   }
 
   private render(): void {
-    const pages: { key: PageTab; label: string; icon: string }[] = [
-      { key: "scenario", label: "Scenario & Execution", icon: "⚡" },
-      { key: "world", label: "3D Logistics World", icon: "🌐" },
-      { key: "ml", label: "ML Prediction Lab", icon: "🧠" },
-      { key: "optimization", label: "VRP & DSA Lab", icon: "🧩" },
-      { key: "decision", label: "Decision Audit Trace", icon: "🛡️" },
-      { key: "research", label: "Research Benchmark", icon: "🔬" },
+    const pages: { key: PageTab; label: string }[] = [
+      { key: "scenario", label: "Scenario & Execution" },
+      { key: "world", label: "3D Logistics World" },
+      { key: "ml", label: "ML Prediction Lab" },
+      { key: "optimization", label: "VRP & DSA Lab" },
+      { key: "decision", label: "Decision Audit Trace" },
+      { key: "research", label: "Research Benchmark" },
     ];
 
     const navHtml = pages
       .map(
         (p) => `
       <button class="nav-item ${this.activePage === p.key ? "active" : ""}" data-page="${p.key}">
-        <span>${p.icon}</span> ${p.label}
+        ${p.label}
       </button>
     `
       )
@@ -103,13 +95,13 @@ class OptimaMultiPageApp {
     }
 
     this.appElement.innerHTML = `
-      <div class="app-shell sidebar-position-${this.sidebarPos}">
-        <aside class="sidebar">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <img src="${logoUrl}" alt="OPTIMA-X Logo" class="brand-logo" style="width: 42px; height: 42px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--accent-cyan); box-shadow: 0 0 12px var(--accent-cyan);" />
+      <div class="app-shell">
+        <header class="top-nav-bar">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <img src="${logoUrl}" alt="OPTIMA-X Logo" class="brand-logo" style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover; border: 1.5px solid var(--accent-cyan); box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);" />
             <div>
-              <div style="font-weight: 900; font-size: 1.25rem; letter-spacing: -0.02em;">OPTIMA-X</div>
-              <div style="font-size: 0.72rem; color: var(--text-subtle); font-weight: 600;">Multi-Page Platform</div>
+              <div style="font-weight: 900; font-size: 1.35rem; letter-spacing: -0.02em; color: var(--text-main);">OPTIMA-X</div>
+              <div style="font-size: 0.76rem; color: var(--text-subtle); font-weight: 700;">Multi-Page Platform</div>
             </div>
           </div>
 
@@ -117,30 +109,15 @@ class OptimaMultiPageApp {
             ${navHtml}
           </nav>
 
-          <div style="margin-top: auto; padding: 16px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-subtle); font-size: 0.8rem; color: var(--text-muted);">
-            <div>Tenant: <strong>Dashboard Admin</strong></div>
-            <div style="margin-top: 4px;">Backend: <strong style="color: var(--accent-emerald);">http://localhost:8000</strong></div>
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <button class="tool-btn" id="btn-theme-toggle">
+              ${this.currentTheme === "dark" ? "Light Mode" : "Dark Mode"}
+            </button>
+            <span class="status-badge"><span class="dot live"></span>FastAPI Live</span>
           </div>
-        </aside>
+        </header>
 
         <main class="main-content">
-          <div class="top-toolbar">
-            <div class="tool-group">
-              <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-subtle);">SIDEBAR DOCK:</span>
-              <button class="tool-btn ${this.sidebarPos === "left" ? "active" : ""}" id="dock-left" title="Dock Left">⇇ Left</button>
-              <button class="tool-btn ${this.sidebarPos === "right" ? "active" : ""}" id="dock-right" title="Dock Right">⇉ Right</button>
-              <button class="tool-btn ${this.sidebarPos === "top" ? "active" : ""}" id="dock-top" title="Dock Top">⇈ Top</button>
-            </div>
-
-            <div class="tool-group">
-              <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-subtle);">THEME:</span>
-              <button class="tool-btn" id="btn-theme-toggle">
-                ${this.currentTheme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
-              </button>
-              <span class="status-badge"><span class="dot live"></span>FastAPI Live</span>
-            </div>
-          </div>
-
           <div class="carousel-viewport">
             ${pageContentHtml}
           </div>
@@ -177,11 +154,6 @@ class OptimaMultiPageApp {
         if (page) this.switchPage(page);
       });
     });
-
-    // Sidebar Docking Buttons
-    document.querySelector("#dock-left")?.addEventListener("click", () => this.setSidebarPos("left"));
-    document.querySelector("#dock-right")?.addEventListener("click", () => this.setSidebarPos("right"));
-    document.querySelector("#dock-top")?.addEventListener("click", () => this.setSidebarPos("top"));
 
     // Theme Switcher
     document.querySelector("#btn-theme-toggle")?.addEventListener("click", () => this.toggleTheme());

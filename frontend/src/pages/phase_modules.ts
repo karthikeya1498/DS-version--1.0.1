@@ -65,7 +65,7 @@ export function renderGraphModule(): string {
               { name: "Haversine A*", color: "#10b981", values: [0.08, 0.32, 1.4, 7.8, 48.2] },
             ],
           })}
-          <div style="margin-top: 16px; background: rgba(9,13,22,0.8); padding: 14px; border-radius: 10px; border: 1px solid var(--border-subtle); font-size: 0.85rem;">
+          <div style="margin-top: 16px; background: var(--bg-deep); padding: 14px; border-radius: 10px; border: 1px solid var(--border-subtle); font-size: 0.85rem;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
               <span>Admissible Heuristic:</span>
               <strong style="color: var(--accent-cyan);">Haversine Lower Bound</strong>
@@ -223,7 +223,7 @@ export function renderRLModule(): string {
 
         <div>
           <h3>Action Space Probability Distribution</h3>
-          <div style="background: rgba(9,13,22,0.8); padding: 18px; border-radius: 12px; border: 1px solid var(--border-subtle);">
+          <div style="background: var(--bg-deep); padding: 18px; border-radius: 12px; border: 1px solid var(--border-subtle);">
             <div style="margin-bottom: 12px;">
               <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
                 <span>Action [0] Serve Order Immediately</span>
@@ -322,7 +322,7 @@ export function renderTelemetryModule(): string {
       <div class="workspace-grid">
         <div>
           <h3 style="margin-top: 0;">Scenario Execution Controls</h3>
-          <div style="display: flex; flex-direction: column; gap: 14px; background: rgba(9,13,22,0.6); padding: 20px; border-radius: 12px; border: 1px solid var(--border-subtle);">
+          <div style="display: flex; flex-direction: column; gap: 14px; background: var(--bg-deep); padding: 20px; border-radius: 12px; border: 1px solid var(--border-subtle);">
             <div>
               <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-subtle);">SEED</label>
               <input id="input-seed" type="number" class="input-field" value="42" style="margin-top: 4px;" />
@@ -382,7 +382,7 @@ export function renderSensitivityModule(): string {
 
         <div>
           <h3>Benchmark Analysis & Observations</h3>
-          <div style="background: rgba(9,13,22,0.8); padding: 20px; border-radius: 12px; border: 1px solid var(--border-subtle); line-height: 1.6; font-size: 0.9rem;">
+          <div style="background: var(--bg-deep); padding: 20px; border-radius: 12px; border: 1px solid var(--border-subtle); line-height: 1.6; font-size: 0.9rem;">
             <p><strong>Key Insight:</strong> On small capacity-saturated fixtures, downstream decision costs remain flat regardless of prediction noise because constraint boundaries dominate.</p>
             <p style="margin-bottom: 0;">On larger multi-vehicle capacity tours, prediction errors exceeding <strong>15%</strong> trigger severe routing sub-optimality, increasing overall costs by <strong>30.8%</strong>.</p>
           </div>

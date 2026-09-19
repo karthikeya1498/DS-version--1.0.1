@@ -154,7 +154,7 @@ export function renderScenarioPage(latestResult: SimulationResult | null): strin
         </div>
 
         <button id="btn-run-pipeline" class="btn-primary" style="width: 100%; margin-top: 20px; font-size: 1.05rem; padding: 16px;">
-          RUN HIGH-PRECISION PIPELINE 🚀
+          RUN HIGH-PRECISION PIPELINE
         </button>
       </div>
 
@@ -211,7 +211,7 @@ export function renderScenarioPage(latestResult: SimulationResult | null): strin
             </div>
           </div>
 
-          <button id="btn-goto-world" class="btn-primary" style="width: 100%;">VIEW SCENARIO IN 3D LOGISTICS WORLD →</button>
+          <button id="btn-goto-world" class="btn-primary" style="width: 100%;">VIEW SCENARIO IN 3D LOGISTICS WORLD</button>
         </div>
       </div>
     </div>

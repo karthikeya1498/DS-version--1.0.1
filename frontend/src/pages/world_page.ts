@@ -9,33 +9,33 @@ import { LogisticsWorld3D } from "../charts/logistics_world_3d";
 export function renderWorldPage(isSurgeActive: boolean): string {
   const routeDiffHtml = isSurgeActive
     ? `
-    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 14px; padding: 20px; margin-top: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <span style="font-size: 0.8rem; font-weight: 800; color: var(--accent-crimson); text-transform: uppercase;">⚠️ TRAFFIC SURGE EVENT INJECTED</span>
-        <span class="status-badge" style="border-color: var(--accent-crimson); color: var(--accent-crimson);">Road B-D +137%</span>
+    <div style="background: rgba(239, 68, 68, 0.1); border: 1.5px solid rgba(239, 68, 68, 0.4); border-radius: 16px; padding: 22px; margin-top: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <span style="font-size: 0.85rem; font-weight: 800; color: var(--accent-crimson); text-transform: uppercase;">TRAFFIC SURGE EVENT INJECTED</span>
+        <span class="status-badge" style="border-color: var(--accent-crimson); color: var(--accent-crimson);">Road B-D +137% Congestion</span>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-        <div style="background: var(--bg-deep); padding: 14px; border-radius: 10px; border: 1px solid var(--border-subtle);">
-          <div style="font-size: 0.75rem; color: var(--text-subtle); font-weight: 700;">OLD CORRIDOR (BLOCKED BY TRAFFIC)</div>
-          <div style="font-size: 1rem; font-weight: 800; color: var(--accent-crimson); margin: 4px 0;">Depot → Node B → Node D → Node E</div>
-          <div style="font-size: 0.82rem; color: var(--text-muted);">ETA: <strong style="color: var(--accent-crimson);">27 min</strong> · Late Risk: <strong>61%</strong></div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+        <div style="background: var(--bg-deep); padding: 16px; border-radius: 12px; border: 1px solid var(--border-subtle);">
+          <div style="font-size: 0.8rem; color: var(--text-subtle); font-weight: 800;">OLD CORRIDOR (CONGESTED ROAD B-D)</div>
+          <div style="font-size: 1.05rem; font-weight: 900; color: var(--accent-crimson); margin: 6px 0;">Depot → Node B → Node D → Node E</div>
+          <div style="font-size: 0.88rem; color: var(--text-muted);">ETA: <strong style="color: var(--accent-crimson);">27 min</strong> · Late Risk: <strong>61%</strong></div>
         </div>
 
-        <div style="background: var(--bg-deep); padding: 14px; border-radius: 10px; border: 1px solid var(--border-subtle);">
-          <div style="font-size: 0.75rem; color: var(--text-subtle); font-weight: 700;">OPTIMA-X REROUTED PATH (ACTIVE)</div>
-          <div style="font-size: 1rem; font-weight: 800; color: var(--accent-emerald); margin: 4px 0;">Depot → Node B → Node C → Node E</div>
-          <div style="font-size: 0.82rem; color: var(--text-muted);">ETA: <strong style="color: var(--accent-emerald);">21 min (Saved 6 mins)</strong> · Late Risk: <strong>18%</strong></div>
+        <div style="background: var(--bg-deep); padding: 16px; border-radius: 12px; border: 1px solid var(--border-subtle);">
+          <div style="font-size: 0.8rem; color: var(--text-subtle); font-weight: 800;">OPTIMA-X REROUTED PATH (ACTIVE)</div>
+          <div style="font-size: 1.05rem; font-weight: 900; color: var(--accent-emerald); margin: 6px 0;">Depot → Node B → Node C → Node E</div>
+          <div style="font-size: 0.88rem; color: var(--text-muted);">ETA: <strong style="color: var(--accent-emerald);">21 min (Saved 6 mins)</strong> · Late Risk: <strong>18%</strong></div>
         </div>
       </div>
     </div>
   `
     : `
-    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 20px; margin-top: 20px;">
+    <div style="background: var(--bg-surface); border: 1.5px solid var(--border-subtle); border-radius: 16px; padding: 22px; margin-top: 20px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <span style="font-size: 0.78rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase;">Corridor Flow Status</span>
-          <h4 style="margin: 4px 0 0; font-size: 1.1rem;">Normal Traffic Baseline (1.0x Multiplier)</h4>
+          <span style="font-size: 0.82rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase;">Corridor Flow Status</span>
+          <h4 style="margin: 4px 0 0; font-size: 1.2rem; font-weight: 800; color: var(--text-main);">Normal Traffic Baseline (1.0x Multiplier)</h4>
         </div>
         <span class="status-badge"><span class="dot live"></span>Optimal Corridor Flow</span>
       </div>
@@ -45,23 +45,23 @@ export function renderWorldPage(isSurgeActive: boolean): string {
   return `
     <div style="display: flex; flex-direction: column; gap: 24px;">
       <!-- Header Bar -->
-      <div style="background: var(--bg-surface); backdrop-filter: blur(12px); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 24px; box-shadow: var(--shadow-card); display: flex; justify-content: space-between; align-items: center;">
+      <div style="background: var(--bg-surface); backdrop-filter: blur(16px); border: 1.5px solid var(--border-subtle); border-radius: 20px; padding: 26px; box-shadow: var(--shadow-card); display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <span style="font-size: 0.75rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase;">Spatial Environment</span>
-          <h2 style="margin: 4px 0 0; font-size: 1.6rem;">3D Spatial Logistics World & Live Rerouting</h2>
+          <span style="font-size: 0.82rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase;">Spatial Environment</span>
+          <h2 style="margin: 4px 0 0; font-size: 1.8rem; font-weight: 900; color: var(--text-main);">3D Spatial Logistics World & Live Rerouting</h2>
         </div>
 
-        <div style="display: flex; gap: 12px;">
-          <button id="btn-world-surge" class="btn-danger">INJECT TRAFFIC SURGE (+137%) ⚠️</button>
-          <button id="btn-world-reset" class="btn-secondary">RESET CORRIDOR FLOW 🔄</button>
+        <div style="display: flex; gap: 14px;">
+          <button id="btn-world-surge" class="btn-danger">INJECT TRAFFIC SURGE (+137%)</button>
+          <button id="btn-world-reset" class="btn-secondary">RESET CORRIDOR FLOW</button>
         </div>
       </div>
 
       <!-- Spatial Canvas -->
-      <div class="canvas-container" style="height: 580px;">
+      <div class="canvas-container" style="height: 600px;">
         <div class="canvas-overlay-hud">
           <span class="dot live"></span>
-          <span>Spatial World Canvas · ${isSurgeActive ? "⚠️ TRAFFIC SURGE DETECTED ON ROAD B-D (+137%)" : "Normal Corridor Flow"}</span>
+          <span>Spatial World Canvas · ${isSurgeActive ? "TRAFFIC SURGE DETECTED ON ROAD B-D (+137%)" : "Normal Corridor Flow"}</span>
         </div>
         <canvas id="spatial-world-canvas" class="world-canvas"></canvas>
       </div>
