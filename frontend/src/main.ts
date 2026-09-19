@@ -1,174 +1,191 @@
 /**
- * OPTIMA-X operations dashboard entry point.
- *
+ * OPTIMA-X Research-Grade Multi-Page Control Platform.
  * Author: Karthikeya
- * The dashboard is dependency-light and uses the FastAPI REST and WebSocket
- * contracts directly so local operations remain easy to reproduce.
+ * Orchestrates Scenario Execution Stepper, 3D Spatial Logistics World,
+ * Neural Topology Lab, VRP Solvers, Decision Lineage Explorer, and Research Benchmarks.
  */
 
-import './style.css';
+import "./style.css";
+import { OptimaApiClient, SimulationResult } from "./services/api_client";
+import { renderScenarioPage, bindScenarioPageEvents } from "./pages/scenario_page";
+import { renderWorldPage, initWorldPageCanvas } from "./pages/world_page";
+import { renderMlPage, bindMlPageEvents } from "./pages/ml_page";
+import { renderOptimizationPage } from "./pages/optimization_page";
+import { renderDecisionPage } from "./pages/decision_page";
+import { renderResearchPage } from "./pages/research_page";
+import { LogisticsWorld3D } from "./charts/logistics_world_3d";
 
-type SimulationMetrics = {
-  total_orders: number;
-  delivered_orders: number;
-  total_cost: number;
-};
+import logoUrl from "./assets/logo.jpg";
 
-type SimulationResponse = {
-  metrics: SimulationMetrics;
-  [key: string]: unknown;
-};
+type SidebarPosition = "left" | "right" | "top";
+type ThemeMode = "dark" | "light";
+type PageTab = "scenario" | "world" | "ml" | "optimization" | "decision" | "research";
 
-type TrafficEvent = {
-  event_type: 'connected' | 'heartbeat' | 'route_reoptimization';
-  timestamp?: string;
-  tenant_id?: string;
-  payload?: {
-    tenant_id: string;
-    zone_id: string;
-    multiplier: number;
-    affected_vehicle_ids: string[];
-    action: string;
-  };
-};
+class OptimaMultiPageApp {
+  private apiClient: OptimaApiClient;
+  private currentTheme: ThemeMode = "dark";
+  private sidebarPos: SidebarPosition = "left";
+  private activePage: PageTab = "scenario";
+  private latestResult: SimulationResult | null = null;
+  private isSurgeActive: boolean = false;
+  private appElement: HTMLElement;
+  private worldViz: LogisticsWorld3D | null = null;
 
-type TokenResponse = { access_token: string };
-
-const API_ORIGIN = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:8000';
-const API_URL = `${API_ORIGIN}/api/v1/simulation/run`;
-const TOKEN_URL = `${API_ORIGIN}/api/v1/auth/token`;
-const WS_URL = `${API_ORIGIN.replace(/^http/, 'ws')}/api/v1/ws/traffic`;
-const app = document.querySelector<HTMLDivElement>('#app');
-
-if (!app) throw new Error('OPTIMA-X dashboard mount element was not found.');
-
-app.innerHTML = `
-  <main class="shell">
-    <header class="hero">
-      <div>
-        <p class="eyebrow">OPTIMA-X / PHASE 5</p>
-        <h1>Adaptive logistics intelligence.</h1>
-        <p class="lede">Forecast demand, dispatch vehicles, and inspect reproducible decisions from one operational view.</p>
-      </div>
-      <div class="status-pill"><span id="connection-dot" class="status-dot"></span><span id="connection-state">Connecting</span></div>
-    </header>
-    <section class="metric-grid" aria-label="Scenario metrics">
-      <article class="metric-card"><span>Total orders</span><strong id="orders">—</strong><small>generated in scenario</small></article>
-      <article class="metric-card"><span>Delivered</span><strong id="served">—</strong><small>completed deliveries</small></article>
-      <article class="metric-card"><span>Baseline cost</span><strong id="cost">—</strong><small>routing objective</small></article>
-    </section>
-    <section class="workspace">
-      <div class="panel panel-primary">
-        <div class="panel-heading"><div><p class="panel-kicker">CONTROL ROOM</p><h2>Run a seeded scenario</h2></div><span class="seed-label">seed 42</span></div>
-        <p>Execute the same two-hour scenario used by the integration test suite and compare the returned decision record.</p>
-        <button id="run" type="button">Run scenario <span aria-hidden="true">↗</span></button>
-      </div>
-      <div class="panel output-panel"><div class="panel-heading"><div><p class="panel-kicker">DECISION TRACE</p><h2>Latest response</h2></div><span id="request-state" class="request-state">Idle</span></div><pre id="output" aria-live="polite">Ready for a reproducible run.</pre></div>
-    </section>
-    <section class="panel live-panel"><div class="panel-heading"><div><p class="panel-kicker">LIVE TRAFFIC STREAM</p><h2>Route re-optimization events</h2></div><span id="event-count" class="request-state">0 events</span></div><p id="traffic-empty" class="empty-state">Waiting for traffic updates from the FastAPI WebSocket.</p><ol id="traffic-events" class="traffic-events" aria-live="polite"></ol></section>
-    <footer><span>Python orchestration</span><span>Java DSA</span><span>SQL persistence</span><span>Live WebSocket telemetry</span></footer>
-  </main>`;
-
-const runButton = document.querySelector<HTMLButtonElement>('#run');
-const output = document.querySelector<HTMLElement>('#output');
-const requestState = document.querySelector<HTMLElement>('#request-state');
-const orders = document.querySelector<HTMLElement>('#orders');
-const served = document.querySelector<HTMLElement>('#served');
-const cost = document.querySelector<HTMLElement>('#cost');
-const connectionState = document.querySelector<HTMLElement>('#connection-state');
-const connectionDot = document.querySelector<HTMLElement>('#connection-dot');
-const trafficEvents = document.querySelector<HTMLOListElement>('#traffic-events');
-const trafficEmpty = document.querySelector<HTMLElement>('#traffic-empty');
-const eventCount = document.querySelector<HTMLElement>('#event-count');
-let receivedEvents = 0;
-let reconnectTimer: number | undefined;
-
-const setState = (state: string): void => {
-  if (requestState) requestState.textContent = state;
-};
-
-const setConnectionState = (state: string, healthy: boolean): void => {
-  if (connectionState) connectionState.textContent = state;
-  connectionDot?.classList.toggle('status-dot-live', healthy);
-};
-
-const renderMetrics = (metrics: SimulationMetrics): void => {
-  if (orders) orders.textContent = String(metrics.total_orders);
-  if (served) served.textContent = String(metrics.delivered_orders);
-  if (cost) cost.textContent = metrics.total_cost.toFixed(2);
-};
-
-const appendTrafficEvent = (event: TrafficEvent): void => {
-  if (!trafficEvents || !event.payload) return;
-  receivedEvents += 1;
-  if (trafficEmpty) trafficEmpty.hidden = true;
-  if (eventCount) eventCount.textContent = `${receivedEvents} event${receivedEvents === 1 ? '' : 's'}`;
-  const item = document.createElement('li');
-  const affectedVehicles = event.payload.affected_vehicle_ids.join(', ') || 'none';
-  item.innerHTML = `<strong>${event.payload.zone_id}</strong><span>${event.payload.multiplier.toFixed(2)}× traffic multiplier · vehicles ${affectedVehicles}</span><time>${new Date(event.timestamp ?? Date.now()).toLocaleTimeString()}</time>`;
-  trafficEvents.prepend(item);
-  while (trafficEvents.children.length > 8) trafficEvents.lastElementChild?.remove();
-};
-
-const fetchToken = async (): Promise<string> => {
-  const response = await fetch(TOKEN_URL, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ username: 'dashboard', password: 'development', tenant_id: 'dashboard' }),
-  });
-  if (!response.ok) throw new Error(`Token request returned HTTP ${response.status}`);
-  return ((await response.json()) as TokenResponse).access_token;
-};
-
-const connectTrafficStream = async (): Promise<void> => {
-  try {
-    const token = await fetchToken();
-    const socket = new WebSocket(`${WS_URL}?token=${encodeURIComponent(token)}`);
-    setConnectionState('Connecting', false);
-    socket.addEventListener('open', () => setConnectionState('Live', true));
-    socket.addEventListener('message', (message) => {
-      const event = JSON.parse(message.data as string) as TrafficEvent;
-      if (event.event_type === 'route_reoptimization') appendTrafficEvent(event);
-    });
-    socket.addEventListener('close', () => {
-      setConnectionState('Reconnecting', false);
-      reconnectTimer = window.setTimeout(() => void connectTrafficStream(), 3000);
-    });
-    socket.addEventListener('error', () => setConnectionState('Unavailable', false));
-  } catch {
-    setConnectionState('Unavailable', false);
-    reconnectTimer = window.setTimeout(() => void connectTrafficStream(), 3000);
+  constructor() {
+    const root = document.querySelector<HTMLElement>("#app");
+    if (!root) throw new Error("#app element not found");
+    this.appElement = root;
+    this.apiClient = new OptimaApiClient();
+    this.init();
   }
-};
 
-const runScenario = async (): Promise<void> => {
-  if (!runButton || !output) return;
-  runButton.disabled = true;
-  setState('Running');
-  output.textContent = 'Requesting simulation metrics…';
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ seed: 42, duration_hours: 2, zones: 3, vehicles: 4, orders_per_hour: 3 }),
-    });
-    if (!response.ok) throw new Error(`API returned HTTP ${response.status}`);
-    const data = (await response.json()) as SimulationResponse;
-    renderMetrics(data.metrics);
-    output.textContent = JSON.stringify(data, null, 2);
-    setState('Complete');
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown request failure';
-    output.textContent = `${message}\n\nStart the FastAPI service on localhost:8000 and run again.`;
-    setState('Unavailable');
-  } finally {
-    runButton.disabled = false;
+  private init(): void {
+    document.documentElement.setAttribute("data-theme", this.currentTheme);
+    this.render();
   }
-};
 
-runButton?.addEventListener('click', () => void runScenario());
-void connectTrafficStream();
+  private toggleTheme(): void {
+    this.currentTheme = this.currentTheme === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", this.currentTheme);
+    this.render();
+  }
 
-window.addEventListener('beforeunload', () => {
-  if (reconnectTimer !== undefined) window.clearTimeout(reconnectTimer);
-});
+  private setSidebarPos(pos: SidebarPosition): void {
+    this.sidebarPos = pos;
+    this.render();
+  }
+
+  private switchPage(page: PageTab): void {
+    this.activePage = page;
+    this.render();
+  }
+
+  private render(): void {
+    const pages: { key: PageTab; label: string; icon: string }[] = [
+      { key: "scenario", label: "Scenario & Execution", icon: "⚡" },
+      { key: "world", label: "3D Logistics World", icon: "🌐" },
+      { key: "ml", label: "ML Prediction Lab", icon: "🧠" },
+      { key: "optimization", label: "VRP & DSA Lab", icon: "🧩" },
+      { key: "decision", label: "Decision Audit Trace", icon: "🛡️" },
+      { key: "research", label: "Research Benchmark", icon: "🔬" },
+    ];
+
+    const navHtml = pages
+      .map(
+        (p) => `
+      <button class="nav-item ${this.activePage === p.key ? "active" : ""}" data-page="${p.key}">
+        <span>${p.icon}</span> ${p.label}
+      </button>
+    `
+      )
+      .join("");
+
+    let pageContentHtml = "";
+    switch (this.activePage) {
+      case "scenario":
+        pageContentHtml = renderScenarioPage(this.latestResult);
+        break;
+      case "world":
+        pageContentHtml = renderWorldPage(this.isSurgeActive);
+        break;
+      case "ml":
+        pageContentHtml = renderMlPage();
+        break;
+      case "optimization":
+        pageContentHtml = renderOptimizationPage();
+        break;
+      case "decision":
+        pageContentHtml = renderDecisionPage();
+        break;
+      case "research":
+        pageContentHtml = renderResearchPage();
+        break;
+    }
+
+    this.appElement.innerHTML = `
+      <div class="app-shell sidebar-position-${this.sidebarPos}">
+        <aside class="sidebar">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="${logoUrl}" alt="OPTIMA-X Logo" class="brand-logo" style="width: 42px; height: 42px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--accent-cyan); box-shadow: 0 0 12px var(--accent-cyan);" />
+            <div>
+              <div style="font-weight: 900; font-size: 1.25rem; letter-spacing: -0.02em;">OPTIMA-X</div>
+              <div style="font-size: 0.72rem; color: var(--text-subtle); font-weight: 600;">Multi-Page Platform</div>
+            </div>
+          </div>
+
+          <nav class="nav-menu">
+            ${navHtml}
+          </nav>
+
+          <div style="margin-top: auto; padding: 16px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-subtle); font-size: 0.8rem; color: var(--text-muted);">
+            <div>Tenant: <strong>Dashboard Admin</strong></div>
+            <div style="margin-top: 4px;">Backend: <strong style="color: var(--accent-emerald);">http://localhost:8000</strong></div>
+          </div>
+        </aside>
+
+        <main class="main-content">
+          <div class="top-toolbar">
+            <div class="tool-group">
+              <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-subtle);">SIDEBAR DOCK:</span>
+              <button class="tool-btn ${this.sidebarPos === "left" ? "active" : ""}" id="dock-left" title="Dock Left">⇇ Left</button>
+              <button class="tool-btn ${this.sidebarPos === "right" ? "active" : ""}" id="dock-right" title="Dock Right">⇉ Right</button>
+              <button class="tool-btn ${this.sidebarPos === "top" ? "active" : ""}" id="dock-top" title="Dock Top">⇈ Top</button>
+            </div>
+
+            <div class="tool-group">
+              <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-subtle);">THEME:</span>
+              <button class="tool-btn" id="btn-theme-toggle">
+                ${this.currentTheme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
+              </button>
+              <span class="status-badge"><span class="dot live"></span>FastAPI Live</span>
+            </div>
+          </div>
+
+          <div class="carousel-viewport">
+            ${pageContentHtml}
+          </div>
+        </main>
+      </div>
+    `;
+
+    this.bindEvents();
+
+    if (this.activePage === "scenario") {
+      bindScenarioPageEvents(
+        this.apiClient,
+        (res) => {
+          this.latestResult = res;
+          this.render();
+        },
+        () => this.switchPage("world")
+      );
+    } else if (this.activePage === "world") {
+      this.worldViz = initWorldPageCanvas(this.isSurgeActive, (active) => {
+        this.isSurgeActive = active;
+        this.render();
+      });
+    } else if (this.activePage === "ml") {
+      bindMlPageEvents();
+    }
+  }
+
+  private bindEvents(): void {
+    // Nav Items
+    this.appElement.querySelectorAll<HTMLButtonElement>(".nav-item").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const page = btn.getAttribute("data-page") as PageTab;
+        if (page) this.switchPage(page);
+      });
+    });
+
+    // Sidebar Docking Buttons
+    document.querySelector("#dock-left")?.addEventListener("click", () => this.setSidebarPos("left"));
+    document.querySelector("#dock-right")?.addEventListener("click", () => this.setSidebarPos("right"));
+    document.querySelector("#dock-top")?.addEventListener("click", () => this.setSidebarPos("top"));
+
+    // Theme Switcher
+    document.querySelector("#btn-theme-toggle")?.addEventListener("click", () => this.toggleTheme());
+  }
+}
+
+new OptimaMultiPageApp();
