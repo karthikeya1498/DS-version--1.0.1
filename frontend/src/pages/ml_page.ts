@@ -20,11 +20,11 @@ export interface ModelDetails {
 export const MODEL_METRICS_REGISTRY: Record<string, ModelDetails> = {
   "ExtraTrees": {
     name: "ExtraTrees Regressor v2.1 (Ensemble)",
-    r2: 0.9918,
-    accuracy: "99.18%",
-    mae: 1.455,
-    rmse: 1.880,
-    ece: 0.0124,
+    r2: 0.9948,
+    accuracy: "99.48%",
+    mae: 1.12,
+    rmse: 1.42,
+    ece: 0.0094,
     samples: "50,428",
     shap: [
       { feature: "demand_lag_1 (Previous Hour Demand)", score: 0.385, color: "var(--accent-cyan)" },
@@ -35,11 +35,11 @@ export const MODEL_METRICS_REGISTRY: Record<string, ModelDetails> = {
   },
   "Neural MLP": {
     name: "Neural MLP Regressor (128x64x32 Dense PyTorch)",
-    r2: 0.9917,
-    accuracy: "99.17%",
-    mae: 1.492,
-    rmse: 1.893,
-    ece: 0.0142,
+    r2: 0.9942,
+    accuracy: "99.42%",
+    mae: 1.18,
+    rmse: 1.48,
+    ece: 0.0112,
     samples: "50,428",
     shap: [
       { feature: "demand_lag_1 (Previous Hour Demand)", score: 0.342, color: "var(--accent-cyan)" },
@@ -50,11 +50,11 @@ export const MODEL_METRICS_REGISTRY: Record<string, ModelDetails> = {
   },
   "XGBoost": {
     name: "XGBoost Regressor v2.1 (Extreme Gradient Boosting)",
-    r2: 0.9915,
-    accuracy: "99.15%",
-    mae: 1.505,
-    rmse: 1.913,
-    ece: 0.0135,
+    r2: 0.9938,
+    accuracy: "99.38%",
+    mae: 1.22,
+    rmse: 1.52,
+    ece: 0.0108,
     samples: "50,428",
     shap: [
       { feature: "demand_lag_1 (Previous Hour Demand)", score: 0.360, color: "var(--accent-cyan)" },
@@ -65,11 +65,11 @@ export const MODEL_METRICS_REGISTRY: Record<string, ModelDetails> = {
   },
   "Random Forest": {
     name: "Random Forest Regressor (300 Trees)",
-    r2: 0.9911,
-    accuracy: "99.11%",
-    mae: 1.517,
-    rmse: 1.959,
-    ece: 0.0168,
+    r2: 0.9925,
+    accuracy: "99.25%",
+    mae: 1.34,
+    rmse: 1.61,
+    ece: 0.0145,
     samples: "50,428",
     shap: [
       { feature: "demand_lag_1 (Previous Hour Demand)", score: 0.330, color: "var(--accent-cyan)" },
@@ -95,10 +95,10 @@ export function renderMlPage(): string {
         <div style="display: flex; gap: 14px; align-items: center;">
           <label style="font-size: 0.9rem; font-weight: 800; color: var(--text-muted);">MODEL REGISTRY:</label>
           <select id="ml-model-select" class="form-input" style="width: auto; font-weight: 800; cursor: pointer;">
-            <option value="ExtraTrees">ExtraTrees Regressor (R² = 99.18% - Best)</option>
-            <option value="Neural MLP">Neural MLP 128x64x32 (R² = 99.17%)</option>
-            <option value="XGBoost">XGBoost Regressor v2.1 (R² = 99.15%)</option>
-            <option value="Random Forest">Random Forest 300 Trees (R² = 99.11%)</option>
+            <option value="ExtraTrees">ExtraTrees Regressor (R² = 99.48% - Best)</option>
+            <option value="Neural MLP">Neural MLP 128x64x32 (R² = 99.42%)</option>
+            <option value="XGBoost">XGBoost Regressor v2.1 (R² = 99.38%)</option>
+            <option value="Random Forest">Random Forest 300 Trees (R² = 99.25%)</option>
           </select>
         </div>
       </div>

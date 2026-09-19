@@ -61,7 +61,12 @@ export function renderWorldPage(isSurgeActive: boolean): string {
       <div class="canvas-container" style="height: 600px;">
         <div class="canvas-overlay-hud">
           <span class="dot live"></span>
-          <span>Spatial World Canvas · ${isSurgeActive ? "TRAFFIC SURGE DETECTED ON ROAD B-D (+137%)" : "Normal Corridor Flow"}</span>
+          <span style="font-weight: 800; font-size: 0.84rem; text-transform: uppercase; color: var(--text-muted);">Spatial Canvas</span>
+          <span style="opacity: 0.4;">·</span>
+          ${isSurgeActive 
+            ? `<span class="hud-black-tag surge">🚨 TRAFFIC SURGE DETECTED ON ROAD B-D (+137%)</span>`
+            : `<span class="hud-black-tag live">✓ Normal Corridor Flow</span>`
+          }
         </div>
         <canvas id="spatial-world-canvas" class="world-canvas"></canvas>
       </div>
