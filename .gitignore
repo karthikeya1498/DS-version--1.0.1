@@ -20,3 +20,12 @@ mlruns/*
 node_modules/
 dist/
 .vite/
+.netlify/
+netlify.toml
+.env*
+.env.local
+.env.example
+*.db
+*.sqlite
+*.sqlite3
+api/
