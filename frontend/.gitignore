@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .vite/
+.netlify/
+netlify.toml
+.env.local
