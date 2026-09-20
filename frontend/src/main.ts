@@ -181,33 +181,29 @@ class OptimaMultiPageApp {
     this.appElement.innerHTML = `
       <div class="app-shell sidebar-position-${this.sidebarPos}">
         <aside class="sidebar">
-          <div style="display: flex; align-items: center; gap: 14px;">
+          <div class="brand-header">
             <img src="${logoUrl}" alt="OPTIMA-X Logo" class="brand-logo" style="width: 42px; height: 42px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--accent-cyan); box-shadow: 0 0 14px rgba(14, 165, 233, 0.35);" />
-            <div>
-              <div style="font-weight: 900; font-size: 1.3rem; letter-spacing: -0.02em; color: var(--text-main);">OPTIMA-X</div>
-            </div>
+            <div style="font-weight: 900; font-size: 1.35rem; letter-spacing: -0.02em; color: var(--text-main);">OPTIMA-X</div>
           </div>
 
           <nav class="nav-menu">
             ${navHtml}
           </nav>
-        </aside>
 
-        <main class="main-content">
-          <div class="top-toolbar">
+          <div class="sidebar-controls">
             <div class="tool-group">
               <button class="tool-btn ${this.sidebarPos === "left" ? "active" : ""}" id="btn-pos-left" title="Dock Left">⇇ Left</button>
               <button class="tool-btn ${this.sidebarPos === "right" ? "active" : ""}" id="btn-pos-right" title="Dock Right">⇉ Right</button>
               <button class="tool-btn ${this.sidebarPos === "top" ? "active" : ""}" id="btn-pos-top" title="Dock Top">⇈ Top</button>
             </div>
 
-            <div class="tool-group">
-              <button class="tool-btn" id="btn-theme-toggle">
-                ${this.currentTheme === "dark" ? "Light Mode" : "Dark Mode"}
-              </button>
-            </div>
+            <button class="tool-btn" id="btn-theme-toggle">
+              ${this.currentTheme === "dark" ? "Light Mode" : "Dark Mode"}
+            </button>
           </div>
+        </aside>
 
+        <main class="main-content">
           <div class="carousel-viewport ${objClass}">
             ${pageContentHtml}
           </div>

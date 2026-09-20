@@ -79,7 +79,7 @@ export function renderScenarioPage(latestResult: SimulationResult | null): strin
 
   return `
     <div>
-      <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 28px;">
+      <div class="grid-layout-scenario">
         <!-- Left Column: Form Controls -->
         <div class="form-card">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
@@ -104,7 +104,7 @@ export function renderScenarioPage(latestResult: SimulationResult | null): strin
             <input id="inp-sc-name" type="text" class="form-input" value="Hyderabad Delivery Test SCN-00982" />
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="grid-form-inputs">
             <div class="form-group">
               <label class="form-label">Total Orders</label>
               <input id="inp-sc-orders" type="number" class="form-input" value="50" min="1" max="500" />

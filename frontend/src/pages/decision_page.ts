@@ -24,7 +24,7 @@ export function renderDecisionPage(): string {
       <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 24px;">
         <h4 style="margin: 0 0 16px; font-size: 1.15rem;">Full Causal Decision Lineage Tree</h4>
 
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; text-align: center;">
+        <div class="grid-layout-4col" style="text-align: center;">
           <div style="background: var(--bg-card); padding: 16px; border-radius: 12px; border: 1px solid var(--border-subtle);">
             <div style="font-size: 0.72rem; color: var(--text-subtle); font-weight: 700;">1. DECISION RECORD</div>
             <div style="font-size: 1.1rem; font-weight: 800; color: var(--accent-emerald); margin-top: 4px;">DEC-1042</div>

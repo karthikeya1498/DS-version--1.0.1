@@ -15,7 +15,7 @@ export function renderWorldPage(isSurgeActive: boolean): string {
         <span class="status-badge" style="border-color: var(--accent-crimson); color: var(--accent-crimson);">Road B-D +137% Congestion</span>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+      <div class="grid-layout-2col">
         <div style="background: var(--bg-deep); padding: 16px; border-radius: 12px; border: 1px solid var(--border-subtle);">
           <div style="font-size: 0.8rem; color: var(--text-subtle); font-weight: 800;">OLD CORRIDOR (CONGESTED ROAD B-D)</div>
           <div style="font-size: 1.05rem; font-weight: 900; color: var(--accent-crimson); margin: 6px 0;">Depot → Node B → Node D → Node E</div>

@@ -104,7 +104,7 @@ export function renderMlPage(): string {
       </div>
 
       <!-- Training Dataset Overview & Top Metrics -->
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+      <div class="grid-layout-4col">
         <div class="hud-card">
           <div class="hud-label">TRAINED MODEL ACCURACY (R²)</div>
           <div class="hud-val" id="ml-val-accuracy" style="color: var(--accent-emerald);">${defaultModel.accuracy}</div>
@@ -136,7 +136,7 @@ export function renderMlPage(): string {
       </div>
 
       <!-- Metrics & Calibration Grid -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 28px;">
+      <div class="grid-layout-2col">
         <div style="background: var(--bg-surface); border: 1.5px solid var(--border-subtle); border-radius: 20px; padding: 28px;" class="ox-card">
           <h4 style="margin: 0 0 18px; font-size: 1.25rem; font-weight: 800;">Model Error Comparison (Demand MAE & ETA RMSE)</h4>
           ${HighTechChartEngine.renderBarChart({
