@@ -25,7 +25,7 @@ export function renderResearchPage(): string {
       <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 24px;">
         <h4 style="margin: 0 0 16px; font-size: 1.15rem;">System Operational Metrics & Ablation Summary</h4>
 
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px;">
+        <div class="grid-layout-4col" style="margin-bottom: 20px;">
           <div style="background: var(--bg-card); padding: 16px; border-radius: 12px; border: 1px solid var(--border-subtle);">
             <div style="font-size: 0.72rem; color: var(--text-subtle); font-weight: 700;">PIPELINE LATENCY</div>
             <div style="font-size: 1.5rem; font-weight: 900; color: var(--accent-cyan); margin-top: 4px;">68.0 ms</div>

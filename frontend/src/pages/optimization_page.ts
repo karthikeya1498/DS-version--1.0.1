@@ -74,7 +74,7 @@ export function renderOptimizationPage(): string {
       </div>
 
       <!-- Benchmark Charts -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+      <div class="grid-layout-2col">
         <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 24px;">
           <h4 style="margin: 0 0 16px; font-size: 1.15rem;">VRP Solvers Objective Cost vs Runtime</h4>
           ${HighTechChartEngine.renderBarChart({
